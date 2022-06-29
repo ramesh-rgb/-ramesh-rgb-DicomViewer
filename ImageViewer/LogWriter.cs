@@ -24,7 +24,7 @@ namespace ImageViewer
                 {
                     Log(logMessage, w);
                 }
-                Console.WriteLine(ex.ToString());
+                //Console.WriteLine(ex.ToString());
             }
             catch (Exception ex)
             {
