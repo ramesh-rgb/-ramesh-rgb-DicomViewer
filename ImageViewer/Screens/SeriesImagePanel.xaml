@@ -1,0 +1,113 @@
+﻿<UserControl x:Class="ImageViewer.Screens.SeriesImagePanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:ImageViewer.Screens"
+             mc:Ignorable="d" 
+             d:DesignHeight="1070" d:DesignWidth="1520" Loaded="UserControl_Loaded" Background="Black">
+    <!--<Grid>
+        <Border x:Name="Imageborder" MouseWheel="Border_MouseWheel" ClipToBounds="True" BorderBrush="WhiteSmoke" BorderThickness="1,1,1,1" MouseDown="Imageborder_MouseDown" MouseMove="Imageborder_MouseMove" MouseUp="Imageborder_MouseUp"  HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#FF0A0A0A" >
+            <Canvas Name="canvas1" Background="#FF1E1F1C" ClipToBounds="false" Width="{Binding Path=ActualWidth, ElementName=DicomInstance}" Height="{Binding Path=ActualHeight, ElementName=DicomInstance}" IsManipulationEnabled="True" ManipulationDelta="Imageborder_ManipulationDelta" ManipulationCompleted="Imageborder_ManipulationCompleted" ManipulationInertiaStarting="canvas1_ManipulationInertiaStarting" >
+                <Image x:Name="DicomInstance"  ClipToBounds="True"   Stretch="Uniform"  OpacityMask="Black"  >
+                    --><!--<Image.RenderTransform>
+                        <TransformGroup x:Name="transformm">
+                            -->
+                    <!--<ScaleTransform CenterX="0" CenterY="0" x:Name="scaleTransform"></ScaleTransform>-->
+                    <!--
+                            <MatrixTransform/>
+                        </TransformGroup>
+                      
+                </Image.RenderTransform>--><!--
+
+                </Image>
+                <Path x:Name="path1" Stroke="Red" Data="M-5,0 L5,0 M0,-5 L0,5"/>
+                <Path x:Name="path2" Stroke="Red">
+                    <Path.Data>
+                        <GeometryGroup>
+                            <LineGeometry StartPoint="-5,0" EndPoint="5,0"/>
+                            <LineGeometry StartPoint="0,-5" EndPoint="0,5"/>
+                        </GeometryGroup>
+                    </Path.Data>
+                </Path>
+            </Canvas>
+        </Border>
+        <StackPanel                            
+            Orientation="Vertical" HorizontalAlignment="Left" VerticalAlignment="Top" Name="stackpanel_Windowtop" Width="409" Height="240" Margin="10,10,0,0" >
+            <Label  Foreground="White" Margin="3" FontSize="14" Name="lbl_Name"></Label>
+            <Label  Foreground="white" Margin="3" FontSize="14" Name="lbl_PatientId"></Label>
+            <Label  Foreground="White" Margin="3" FontSize="14" Name="lbl_StudyDescription"></Label>
+            <Label  Foreground="white" Margin="3" FontSize="14" Name="lbl_PatientBirthdate"></Label>
+            <Label  Foreground="white" Margin="3" FontSize="14" Name="lbl_SeriesDescription"></Label>
+        </StackPanel>
+        <StackPanel Orientation="Vertical" HorizontalAlignment="Right" VerticalAlignment="Top" Name="stackpanel_Windowrighttop" Width="198" Height="110" Margin="0,5,0,0" >
+            <Label  Foreground="White" Margin="0,0,3,0" FontSize="14" Name="lbl_StudyDate" HorizontalAlignment="Center" VerticalAlignment="Center"></Label>
+        </StackPanel>
+        <StackPanel Orientation="Vertical" Name="stackpanel_Window" Margin="0,0,0,40" HorizontalAlignment="Left" Width="332" Height="232" VerticalAlignment="Bottom">
+            <Label  Foreground="White" Margin="3" FontSize="14" Name="lbl_Modality"></Label>
+            <Label  Foreground="White" Margin="3" FontSize="14" Name="lbl_Instance"></Label>
+            <Label  Foreground="White" Margin="3" FontSize="14" Name="lbl_Series"></Label>
+            <Label  Foreground="White" Margin="3" FontSize="14" Name="lbl_min"></Label>
+            <Label  Foreground="White" Margin="3" FontSize="14" Name="lbl_max"></Label>
+        </StackPanel>
+        <StackPanel Orientation="Vertical" VerticalAlignment="Bottom" Name="stackpanel_Windowbottomright" Width="377"  HorizontalAlignment="Right" Margin="0,0,10,27" Height="174">
+            <Label  Foreground="White" Margin="1" FontSize="14" Name="lbl_WL" HorizontalAlignment="Center" VerticalAlignment="Center"></Label>
+            <Label  Foreground="White" Margin="1" FontSize="14" Name="lbl_WW" HorizontalAlignment="Center" VerticalAlignment="Center"></Label>
+            <Label  Foreground="white" Margin="1" FontSize="14" Name="lbl_PX" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </StackPanel>
+    </Grid>-->
+    <Grid Width="1520" Height="1070">
+        <Canvas Margin="0,0,0,0">
+            <Border x:Name="Imageborder" MouseWheel="Border_MouseWheel"  ClipToBounds="True" BorderThickness="1,1,1,1" MouseDown="Imageborder_MouseDown" MouseMove="Imageborder_MouseMove" MouseUp="Imageborder_MouseUp" Height="973" Width="1377" Background="Black" Padding="20,20,20,20" Canvas.Left="80" Canvas.Top="40" >
+                <Canvas Name="canvas1" Background="#FF1E1F1C" ClipToBounds="false" Width="{Binding Path=ActualWidth, ElementName=DicomInstance}" Height="{Binding Path=ActualHeight, ElementName=DicomInstance}" IsManipulationEnabled="True" ManipulationDelta="Imageborder_ManipulationDelta" ManipulationCompleted="Imageborder_ManipulationCompleted" ManipulationInertiaStarting="canvas1_ManipulationInertiaStarting" >
+                    <Image x:Name="DicomInstance"  ClipToBounds="True"   Stretch="Uniform"  OpacityMask="Black"  >
+                        <!--<Image.RenderTransform>
+                        <TransformGroup x:Name="transformm">
+                            -->
+                        <!--<ScaleTransform CenterX="0" CenterY="0" x:Name="scaleTransform"></ScaleTransform>-->
+                        <!--
+                            <MatrixTransform/>
+                        </TransformGroup>
+                        
+                      
+                </Image.RenderTransform>-->
+
+                    </Image>
+                    <Path x:Name="path1" Stroke="Red" Data="M-5,0 L5,0 M0,-5 L0,5" Visibility="Hidden"/>
+                    <Path x:Name="path2" Stroke="Red">
+                        <Path.Data>
+                            <GeometryGroup>
+                                <LineGeometry StartPoint="-5,0" EndPoint="5,0"/>
+                                <LineGeometry StartPoint="0,-5" EndPoint="0,5"/>
+                            </GeometryGroup>
+                        </Path.Data>
+                    </Path>
+                </Canvas>
+            </Border>
+            <StackPanel                            
+            Orientation="Vertical" Canvas.Left="1" Canvas.Bottom="50" Name="stackpanel_Windowtop">
+              
+                <Label  Foreground="white" Margin="3" FontSize="16" Name="lbl_PatientId"></Label>
+                <Label  Foreground="White" Margin="3" FontSize="16" Name="lbl_StudyDescription"></Label>
+                <Label  Foreground="white" Margin="3" FontSize="16" Name="lbl_PatientBirthdate"></Label>
+                <Label  Foreground="white" Margin="3" FontSize="16" Name="lbl_SeriesDescription"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Vertical"  Canvas.Right="4" Canvas.Top="10" Name="stackpanel_Windowrighttop">
+                <Label  Foreground="White" Margin="0,0,5,0" FontSize="16" Name="lbl_StudyDate" HorizontalAlignment="Center" VerticalAlignment="Center"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Vertical"  Canvas.Left="1" Canvas.Top="5" Name="stackpanel_Window" Margin="0,10,0,40">
+                <Label  Foreground="White" Margin="3" FontSize="16" Name="lbl_Name"></Label>
+                <Label  Foreground="White" Margin="3" FontSize="16" Name="lbl_Modality"></Label>
+                <Label  Foreground="White" Margin="3" FontSize="16" Name="lbl_Instance"></Label>
+                <Label  Foreground="White" Margin="3" FontSize="16" Name="lbl_Series"></Label>
+                <Label  Foreground="White" Margin="3" FontSize="16" Name="lbl_min"></Label>
+                <Label  Foreground="White" Margin="3" FontSize="16" Name="lbl_max"></Label>
+            </StackPanel>
+            <StackPanel Orientation="Vertical" Canvas.Right="4" Canvas.Bottom="50" Name="stackpanel_Windowbottomright">
+                <Label  Foreground="White" Margin="1" FontSize="16" Name="lbl_WL" HorizontalAlignment="Center" VerticalAlignment="Center"></Label>
+                <Label  Foreground="White" Margin="1" FontSize="16" Name="lbl_WW" HorizontalAlignment="Center" VerticalAlignment="Center"></Label>
+                <Label  Foreground="white" Margin="1" FontSize="16" Name="lbl_PX" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Canvas>
+    </Grid>
+</UserControl>
