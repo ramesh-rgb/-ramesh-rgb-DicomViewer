@@ -28,7 +28,6 @@ namespace ImageViewer
             catch (Exception ex)
             {
                Console.WriteLine(ex.ToString());
-                Console.WriteLine(ex.ToString());
             }
         }
 
@@ -45,6 +44,7 @@ namespace ImageViewer
             }
             catch (Exception ex)
             {
+                txtWriter.WriteLine(ex.ToString());
             }
         }
     }

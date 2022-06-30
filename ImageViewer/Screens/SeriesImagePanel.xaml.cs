@@ -36,14 +36,14 @@ namespace ImageViewer.Screens
         private double rotateangle;
         private double Swindowwidth = 0.0;
         private double SwindowCenter = 0.0;
-     //   private double angle;
+        //   private double angle;
         public int indexr;
         public int j;
         public int Lastr;
         private const float MIN_ZOOMRATIO = 0.5f;
         private const float MAX_ZOOMRATIO = 2.0f;
         private const float ZOOM_STEP = 0.1f;
-       // System.Drawing.Point ptWLDown;
+        // System.Drawing.Point ptWLDown;
         private IPixelData pixel;
         //public int width;
         //public int height;  
@@ -63,9 +63,9 @@ namespace ImageViewer.Screens
         //bool signed16Image;
         private DispatcherTimer dispatcherTimer = new DispatcherTimer();
         private int frameTime;
-        public bool threemanipulate=false;
+        public bool threemanipulate = false;
         public bool twomanipulate = false;
-        public bool fivemanipulate=false;
+        public bool fivemanipulate = false;
         private System.Windows.Point startpoint;
         private System.Windows.Point dicominstancepoint;
         private System.Windows.Point dicomendepoint;
@@ -73,29 +73,30 @@ namespace ImageViewer.Screens
         private Line linetool;
         private TextBlock textBlock1;
         private bool mousedowncheck;
-        private bool linetoolenabled=false;
+        private bool linetoolenabled = false;
         private bool Recttoolenabled = false;
         private bool circletoolenabled = false;
         private bool selecttoolenabled = false;
+        private bool WindowingToolEnabled = false;
         private Ellipse ellipsearea;
         private int pixeldatwidth;
         private int pixeldatheight;
         private double pixelspacingvalue;
-      //  private DicomImage dicomImage1;
+        //  private DicomImage dicomImage1;
         private string seriesRecordPathFileName;
         private DicomDirectoryRecord dicomDirectoryRecordobj;
         DicomDec dicomDecoder;
-        public SeriesImagePanel()          
+        public SeriesImagePanel()
         {
             InitializeComponent();
-          //  ptWLDown=new System.Drawing.Point();
+            //  ptWLDown=new System.Drawing.Point();
             //winMin = 0;
             //winMax = 65535;
             //changeValWidth = 0.5;
             //changeValCentre = 20.0;
             mousedowncheck = false;
             dicomDecoder = new DicomDec();
-            dicomDirectoryRecordobj=new DicomDirectoryRecord();
+            dicomDirectoryRecordobj = new DicomDirectoryRecord();
         }
 
         public void AddFile(string fileName)
@@ -110,7 +111,7 @@ namespace ImageViewer.Screens
         {
             get
             { return pixel; }
-           
+
         }
         public bool Recttoolenable
         {
@@ -119,13 +120,18 @@ namespace ImageViewer.Screens
         }
         public bool linetoolenable
         {
-            get { return linetoolenabled; }  
-            set { linetoolenabled = value; } 
+            get { return linetoolenabled; }
+            set { linetoolenabled = value; }
         }
         public bool circletoolenable
         {
             get { return circletoolenabled; }
             set { circletoolenabled = value; }
+        }
+        public bool windowingtoolenable
+        {
+            get { return WindowingToolEnabled; }
+            set { WindowingToolEnabled = value; }
         }
         public bool Selectiontoolenable
         {
@@ -317,13 +323,10 @@ namespace ImageViewer.Screens
          //     Zoom = 1.5;
          // }
         }
-
-
         public void AddSeriesRecord(DicomDirectoryRecord dicomDirectoryRecord)
         {
             dicomDirectoryRecordobj = dicomDirectoryRecord;
         }
-
         //public int Width
         //{
         //       get { return width; }
@@ -334,7 +337,7 @@ namespace ImageViewer.Screens
         //    get { return height; }  
         //    set { this.height = value; }
         //} 
-         private void dispatcherTimer_Tick(object sender, EventArgs e)
+        private void dispatcherTimer_Tick(object sender, EventArgs e)
         {
              //DicomImage dImage = GetDicomImage(dicomlist[0]);
             DicomImage dImage = GetDicomImage(dicomDecoder.GetFilePath(dicomDirectoryRecordobj.LowerLevelDirectoryRecordCollection.First(), seriesRecordPathFileName));
@@ -658,6 +661,16 @@ namespace ImageViewer.Screens
                 rescaleSlope = dImage.Dataset.Get<int>(DicomTag.RescaleSlope);
             if (dImage.Dataset.Contains(DicomTag.PixelSpacing))
             pixelspacingvalue = dImage.Dataset.Get<Double>(DicomTag.PixelSpacing);
+            if (WindowingToolEnabled)
+            {
+
+
+                mousedowncheck = true;
+
+            }
+
+
+
 
             if (Recttoolenabled)
             {
@@ -769,54 +782,7 @@ namespace ImageViewer.Screens
             }
             rightMouseDown = true;
             Cursor = Cursors.Hand;
-
-
-            //var elements = sender as UIElement;
-            //startpoint = e.GetPosition(elements);
-
-            //// Remove the drawn rectanglke if any.
-            //// At a time only one rectangle should be there
-            //if (Recttoolenabled)
-            //{
-            //    if (rectSelectArea != null)
-            //       canvas1.Children.Remove(rectSelectArea);
-
-            //    // Initialize the rectangle.
-            //    // Set border color and width
-            //    rectSelectArea = new Rectangle
-            //    {
-            //        Stroke = Brushes.DarkGreen,
-            //        StrokeThickness = 2
-            //    };
-            //    //linetool = new Line
-            //    //{
-            //    //    Stroke = Brushes.IndianRed,
-            //    //    StrokeThickness = 2
-            //    //};
-            //    Canvas.SetLeft(rectSelectArea, startpoint.X);
-            //    Canvas.SetTop(rectSelectArea, startpoint.X);
-
-            //    //Canvas.SetLeft(linetool, startpoint.X);
-            //    //Canvas.SetTop(linetool, startpoint.X);
-
-            //   canvas1.Children.Add(rectSelectArea);
-            //   mousedowncheck = true;
-            //}
-
-          //  else if (linetoolenabled)
-          //  {
-          //      if (linetool != null)
-          //  //        RootCanvas.Children.Remove(linetool);
-          //      linetool = new Line
-          //      {
-          //          Stroke = Brushes.IndianRed,
-          //          StrokeThickness = 2
-          //      };
-          //      Canvas.SetLeft(linetool, startpoint.X);
-          //      Canvas.SetTop(linetool, startpoint.X);
-          ////      RootCanvas.Children.Add(linetool);
-          //      mousedowncheck = true;
-          //  }
+       
         }
         public void delete()
         {
@@ -847,41 +813,13 @@ namespace ImageViewer.Screens
             // DetermineMouseSensitivity();
             if (rightMouseDown == true)
             {
-                //  var element = sender as UIElement;
-                //    var positionmove = e.GetPosition(element);
-
-                //     //winWidthBy2 = winWidth / 2;
-                //     //winWidth = winMax - winMin;
-                //     //winCentre = winMin + winWidthBy2;
-
-                //   deltaX = (int)((ptWLDown.X - (int)positionmove.X));
-                //   deltaY = (int)((ptWLDown.Y - (int)positionmove.Y));
-
-                //     //winCentre -= deltaY;
-                //     //winWidth -= deltaX;
-
-                //     //if (winWidth < 2) winWidth = 2;
-                //     //winWidthBy2 = winWidth / 2;
-
-                //     //winMax = winCentre + winWidthBy2;
-                //     //winMin = winCentre - winWidthBy2;
-
-                //     //if (winMin >= winMax) winMin = winMax - 1;
-                //     //if (winMax <= winMin) winMax = winMin + 1;
-
-                //     ptWLDown.X = (int)positionmove.X;
-                //     ptWLDown.Y = (int)positionmove.Y;
-
-                //     Swindowwidth -= deltaX;
-                //     SwindowCenter -= deltaY;
-                //     Refresh();
-
+               
                 //         //  Invalidate();
                 if (mousedowncheck == true)
                 {
                     //if (e.LeftButton == MouseButtonState.Released || rectSelectArea == null)
                     //    return;
-                    var element = sender as UIElement;
+                  //  var element = sender as UIElement;
                     var pos = e.GetPosition(canvas1);
                 
                     ImageSource imageSource = DicomInstance.Source;
@@ -966,6 +904,36 @@ namespace ImageViewer.Screens
                         textBlock1.Text = "width:" + ellipsearea.Width + "\n" + "height:" + ellipsearea.Height + "\n" + "Area:" +(3.14* ellipsearea.Width * ellipsearea.Height);
                     
                     }
+
+                    if(WindowingToolEnabled)
+                    {
+                       // var element = sender as UIElement;
+                       // var positionmove = e.GetPosition(element);
+
+                        //winWidthBy2 = winWidth / 2;
+                        //winWidth = winMax - winMin;
+                        //winCentre = winMin + winWidthBy2;                
+                        Swindowwidth -= (int)((startpoint.X - (int)pos.X));
+                        SwindowCenter -= (int)((startpoint.Y - (int)pos.Y));
+                        //winCentre -= deltaY;
+                        //winWidth -= deltaX;
+
+                        //if (winWidth < 2) winWidth = 2;
+                        //winWidthBy2 = winWidth / 2;
+
+                        //winMax = winCentre + winWidthBy2;
+                        //winMin = winCentre - winWidthBy2;
+
+                        //if (winMin >= winMax) winMin = winMax - 1;
+                        //if (winMax <= winMin) winMax = winMin + 1;
+
+                        startpoint.X = (int)pos.X;
+                        startpoint.Y = (int)pos.Y;
+
+                  
+                        Refresh();
+
+                    }
                 }
             }          
             else
@@ -1027,11 +995,14 @@ namespace ImageViewer.Screens
                     Canvas.SetTop(textBlock1, Mouse.GetPosition(canvas1).Y);
                     canvas1.Children.Add(textBlock1);
                 }
+
+              
                 rectSelectArea = null;
                 ellipsearea = null; 
                 mousedowncheck = false;
                 linetool = null;
                 rightMouseDown = false;
+
             }
             
         }
