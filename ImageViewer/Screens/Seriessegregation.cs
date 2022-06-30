@@ -26,10 +26,7 @@ namespace ImageViewer.Screens
                     var sip = seriesImagePanelsList[seriesindex];
                     if (sip.Name == dicomFile.Dataset.GetSingleValueOrDefault(DicomTag.SeriesNumber, string.Empty))
                         sip.AddFile(file.FullName);
-                    //  var d  = ts[seriesindex];
-                 //   var d = serieslistobj[seriesindex];
-                  //  d.files.Add(file.FullName);
-                    Console.WriteLine("dicomfile added ******************");
+                       Console.WriteLine("dicomfile added ******************");
                 }
                 else
                 {

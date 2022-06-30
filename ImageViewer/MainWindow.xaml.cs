@@ -567,7 +567,6 @@ namespace ImageViewer
 
                                 logWriter.LogWrite("StudyDescription :" + this.StudyDescriptionlbl.Content);
 
-
                                 if (dicomFile.Dataset.Contains(DicomTag.StudyDate))
                                     this.datelbl.Content = dicomFile.Dataset.GetSingleValueOrDefault(DicomTag.StudyDate, string.Empty);
 
