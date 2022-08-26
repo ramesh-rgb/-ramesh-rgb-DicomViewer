@@ -11,9 +11,8 @@ using System.Threading.Tasks;
 namespace ImageViewer
 {
    
-    public class RecurseFileStructure
+    public class RecurseFileStructure   
     {
-
         List<FileInfo>  fileinfoList = new List<FileInfo>();
         List<FileInfo> uniqueList=new List<FileInfo>();
         public List<FileInfo> TraverseDirectory(DirectoryInfo directoryInfo)

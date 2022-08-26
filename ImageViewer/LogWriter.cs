@@ -51,9 +51,6 @@ namespace ImageViewer
         }
     }
 }
-
-
-
    public class LogWriter
 {
   

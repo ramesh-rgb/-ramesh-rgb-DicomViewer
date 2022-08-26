@@ -19,6 +19,7 @@ using Brushes = System.Windows.Media.Brushes;
 using Matrix = System.Windows.Media.Matrix;
 using Point = System.Drawing.Point;
 using Rectangle = System.Windows.Shapes.Rectangle;
+//18.08.2022
 
 namespace ImageViewer.Screens
 {
@@ -36,14 +37,15 @@ namespace ImageViewer.Screens
         private double rotateangle;
         private double Swindowwidth = 0.0;
         private double SwindowCenter = 0.0;
-        //   private double angle;
+
+        //private double angle;
         public int indexr;
         public int j;
         public int Lastr;
         private const float MIN_ZOOMRATIO = 0.5f;
         private const float MAX_ZOOMRATIO = 2.0f;
         private const float ZOOM_STEP = 0.1f;
-        // System.Drawing.Point ptWLDown;
+        //System.Drawing.Point ptWLDown;
         private IPixelData pixel;
         //public int width;
         //public int height;  
@@ -62,7 +64,7 @@ namespace ImageViewer.Screens
         //bool imageAvailable;
         //bool signed16Image;
         private DispatcherTimer dispatcherTimer = new DispatcherTimer();
-        private int frameTime;
+        public int frameTime;
         public bool threemanipulate = false;
         public bool twomanipulate = false;
         public bool fivemanipulate = false;
@@ -82,14 +84,37 @@ namespace ImageViewer.Screens
         private int pixeldatwidth;
         private int pixeldatheight;
         private double pixelspacingvalue;
-        //  private DicomImage dicomImage1;
+      //private DicomImage dicomImage1;
         private string seriesRecordPathFileName;
         private DicomDirectoryRecord dicomDirectoryRecordobj;
         DicomDec dicomDecoder;
+        private bool isDicomDirFolderPath;
+        private bool looping=true;
+        //18.08.2022
+
+        private String frameOfReferenceUID;
+        private String imagePosition;
+        private String imageOrientation;
+        private String[] imageType;
+        private String referencedSOPInstanceUID = "";
+        private String pixelSpacing;
+        private int row;
+        private int column;
+        private bool isLocalizer = false;
+        private static bool displayScout = false;
+        private int scoutLine1X1;
+        private int scoutLine1Y1;
+        private int scoutLine1X2;
+        private int scoutLine1Y2;
+        private int scoutLine2X1;
+        private int scoutLine2Y1;
+        private int scoutLine2X2;
+        private int scoutLine2Y2;
+
         public SeriesImagePanel()
         {
             InitializeComponent();
-            //  ptWLDown=new System.Drawing.Point();
+            //ptWLDown=new System.Drawing.Point();
             //winMin = 0;
             //winMax = 65535;
             //changeValWidth = 0.5;
@@ -97,21 +122,63 @@ namespace ImageViewer.Screens
             mousedowncheck = false;
             dicomDecoder = new DicomDec();
             dicomDirectoryRecordobj = new DicomDirectoryRecord();
+            BorderWidth = 1520;
+            BorderHeight = 1070;
+            frameTime = 0;
+            retrieveScoutParam();
         }
 
+        public double BorderWidth
+        {
+            get { return this.Imageborder.Width; }
+            set
+            {
+             this.Imageborder.Width = value;
+            }
+        }
+
+        public bool EnableLooping
+        {
+            get { return this.looping; }
+            set { this.looping = value; }
+        }
+
+        public double BorderHeight
+        {
+            get { return Imageborder.Height; }
+            set
+            {
+                Imageborder.Height = value;
+            }
+        }
+
+        public void  showoverlay(bool val)
+        {
+           if(val)
+            {
+                stackpanel_Windowtop.Visibility = Visibility.Visible;
+                stackpanel_Window.Visibility = Visibility.Visible;
+                stackpanel_Windowbottomright.Visibility = Visibility.Visible;
+                stackpanel_Windowrighttop.Visibility = Visibility.Visible;
+            }             
+            else
+            {
+                stackpanel_Windowtop.Visibility = Visibility.Collapsed;
+                stackpanel_Window.Visibility = Visibility.Collapsed;
+                stackpanel_Windowbottomright.Visibility = Visibility.Collapsed;
+                stackpanel_Windowrighttop.Visibility = Visibility.Collapsed;
+            }
+        }
         public void AddFile(string fileName)
         {
             this.dicomlist.Add(fileName);
-
         }
         public string SeriesRecordPathFileName
         { get { return seriesRecordPathFileName; } set { seriesRecordPathFileName = value; } }
 
         public IPixelData GetPixels
-        {
-            get
+        {   get
             { return pixel; }
-
         }
         public bool Recttoolenable
         {
@@ -136,7 +203,7 @@ namespace ImageViewer.Screens
         public bool Selectiontoolenable
         {
             get { return selecttoolenabled; }
-            set { selecttoolenabled = value; }
+             set { selecttoolenabled = value; }
         }
         public string Name
         {
@@ -164,11 +231,9 @@ namespace ImageViewer.Screens
         }
 
         public void reset()      
-        {
-           
+        {         
                 if (DicomInstance != null)
-                    DicomInstance.RenderTransform = new MatrixTransform();
-            
+                    DicomInstance.RenderTransform = new MatrixTransform();  
         }
         public int Indexr
         {
@@ -192,64 +257,122 @@ namespace ImageViewer.Screens
                 SwindowCenter = value;                              
             }
         }
+        //18.08.22
+        public bool isLocalizerInstance()
+        {
+            return isLocalizer;
+        }
 
         public List<string>DicomList
         {
             get { return dicomlist; }
-           
         }
-
+        public void MoveForward()
+        {
+            Indexr++;
+            DicomImage image = GetDicomImage(dicomlist[Indexr]);
+            if (image != null)
+            {
+                image.WindowCenter = SwindowCenter;
+                image.WindowWidth = Swindowwidth;
+                if (pixeldatwidth == 0)
+                {
+                    pixeldatwidth = image.Width;
+                    pixeldatheight = image.Height;
+                }
+                Bitmap bmp = new Bitmap(image.RenderImage(0).As<Bitmap>());
+                DicomInstance.Source = BitmapToImageSource(bmp);
+                this.lbl_Instance.Content = "Images:" + Indexr.ToString();
+            }
+            
+        }
+        public void OnetimeLoop()
+        {
+            while (Indexr<dicomlist.Count)
+            {              
+                DicomImage image = GetDicomImage(dicomlist[Indexr]);
+                if (image != null)
+                {
+                    image.WindowCenter = SwindowCenter;
+                    image.WindowWidth = Swindowwidth;
+                    if (pixeldatwidth == 0)
+                    {
+                        pixeldatwidth = image.Width;
+                        pixeldatheight = image.Height;
+                    }
+                    Bitmap bmp = new Bitmap(image.RenderImage(0).As<Bitmap>());
+                    DicomInstance.Source = BitmapToImageSource(bmp);
+                    this.lbl_Instance.Content = "Images:" + Indexr.ToString();
+                }
+                Indexr++;
+            }
+        }
+        public void MoveBackward()
+        {
+            if (Indexr != 0)
+            {
+                Indexr--;
+                DicomImage image = GetDicomImage(dicomlist[Indexr]);
+                if (image != null)
+                {
+                    image.WindowCenter = SwindowCenter;
+                    image.WindowWidth = Swindowwidth;
+                    if (pixeldatwidth == 0)
+                    {
+                        pixeldatwidth = image.Width;
+                        pixeldatheight = image.Height;
+                    }
+                    Bitmap bmp = new Bitmap(image.RenderImage(0).As<Bitmap>());
+                    DicomInstance.Source = BitmapToImageSource(bmp);
+                    this.lbl_Instance.Content = "Images:" + Indexr.ToString();
+                }
+                
+            }
+        }
         [Obsolete]
         public void Refresh()
         {
-
-
-            DicomImage Image = GetDicomImage(dicomlist[Indexr]);
-            if (Image != null)
+            if (dicomlist.Count() > 0)
             {
-                Image.WindowCenter = SwindowCenter;
-                Image.WindowWidth = Swindowwidth;
-                Bitmap bmp = new Bitmap(Image.RenderImage(0).As<Bitmap>());
-                DicomInstance.Source = BitmapToImageSource(bmp);
+                DicomImage image = GetDicomImage(dicomlist[Indexr]);
+                if (image != null)
+                {
+                    image.WindowCenter = SwindowCenter;
+                    image.WindowWidth = Swindowwidth;
+                    if (pixeldatwidth == 0)
+                    {
+                        pixeldatwidth = image.Width;
+                        pixeldatheight = image.Height;
+                    }
+
+                    Bitmap bmp = new Bitmap(image.RenderImage(0).As<Bitmap>());
+                    DicomInstance.Source = BitmapToImageSource(bmp);
+                    Imageborder.Focus();
+                }
+                SetWindowInfo(image);
             }
-            SetWindowInfo(Image);
+            else if(isDicomDirFolderPath)
+            {
+                DicomImage image;
+                image = GetDicomImage(dicomDecoder.GetFilePath(dicomDirectoryRecordobj.LowerLevelDirectoryRecordCollection.ElementAt(indexr), seriesRecordPathFileName));
+                if (image != null)
+                {
+                    image.WindowCenter = SwindowCenter;
+                    image.WindowWidth = Swindowwidth;
+                    if (pixeldatwidth == 0)
+                    {
+                        pixeldatwidth = image.Width;
+                        pixeldatheight = image.Height;
+                    }
+                    Bitmap bmp = new Bitmap(image.RenderImage(0).As<Bitmap>());
+                    //DicomInstance.RenderTransform = new MatrixTransform();
+                    DicomInstance.Source = (BitmapToImageSource(bmp));
+                    Imageborder.Focus();
 
-          //  DicomImage image;
-
-            ////     DicomImage Image = dicomImageList[Indexr];
-           
-            //if(dicomlist.Count()>0)
-            //{
-            //    image = GetDicomImage(dicomlist[Indexr]);
-            //    if (image != null)
-            //    {
-            //        Swindowwidth = image.WindowWidth;
-            //        SwindowCenter = image.WindowCenter;
-            //        pixeldatwidth = image.Width;
-            //        pixeldatheight = image.Height;
-            //        Bitmap bmp = new Bitmap(image.RenderImage(0).As<Bitmap>());
-            //        DicomInstance.RenderTransform = new MatrixTransform();
-            //        DicomInstance.Source = (BitmapToImageSource(bmp));
-            //    }
-            //}
-            ////else 
-            ////{
-            ////    image = GetDicomImage(dicomDecoder.GetFilePath(dicomDirectoryRecordobj.LowerLevelDirectoryRecordCollection.First(), seriesRecordPathFileName));
-            ////    if (image != null)
-            ////    {
-            ////        Swindowwidth = image.WindowWidth;
-            ////        SwindowCenter = image.WindowCenter;
-            ////        pixeldatwidth = image.Width;
-            ////        pixeldatheight = image.Height;
-            ////        Bitmap bmp = new Bitmap(image.RenderImage(0).As<Bitmap>());
-            ////        DicomInstance.RenderTransform = new MatrixTransform();
-
-            ////        DicomInstance.Source = (BitmapToImageSource(bmp));
-
-            ////    }
-            ////}
-
-
+                }
+                SetWindowInfo(image);
+            }
+          
         }
         public double Zoom
         {
@@ -267,8 +390,7 @@ namespace ImageViewer.Screens
                 //    var g = canvas1.Children;
                 //  g[1].RenderTransform = new ScaleTransform(zoomin,zoomin);
                 //}                
-                // canvas1 = new Canvas();
-                
+                // canvas1 = new Canvas();               
             }    
             get { 
                 return zoomin;
@@ -325,7 +447,10 @@ namespace ImageViewer.Screens
         }
         public void AddSeriesRecord(DicomDirectoryRecord dicomDirectoryRecord)
         {
+
             dicomDirectoryRecordobj = dicomDirectoryRecord;
+            // dicomlist = 
+            //dicomlist =dicomDirectoryRecord.LowerLevelDirectoryRecordCollection.ToList();
         }
         //public int Width
         //{
@@ -339,22 +464,114 @@ namespace ImageViewer.Screens
         //} 
         private void dispatcherTimer_Tick(object sender, EventArgs e)
         {
-             //DicomImage dImage = GetDicomImage(dicomlist[0]);
-            DicomImage dImage = GetDicomImage(dicomDecoder.GetFilePath(dicomDirectoryRecordobj.LowerLevelDirectoryRecordCollection.First(), seriesRecordPathFileName));
-            Indexr++;
-            Indexr = Indexr >= dImage.NumberOfFrames ? Lastr : Indexr;
-            dImage.WindowWidth = Swindowwidth;
-            dImage.WindowCenter = SwindowCenter;
-            if (dImage.NumberOfFrames>1)
+            //DicomImage dImage = GetDicomImage(dicomlist[0]);
+            //DicomImage dImage = GetDicomImage(dicomDecoder.GetFilePath(dicomDirectoryRecordobj.LowerLevelDirectoryRecordCollection.First(), seriesRecordPathFileName));
+            //Indexr++;
+            //Indexr = Indexr >= dImage.NumberOfFrames ? Lastr : Indexr;
+            //dImage.WindowWidth = Swindowwidth;
+            //dImage.WindowCenter = SwindowCenter;
+            //if (dImage.NumberOfFrames>1)
+            //{
+            //    Bitmap bmp = new Bitmap(dImage.RenderImage(Indexr).As<Bitmap>());
+            //    DicomInstance.Source = BitmapToImageSource(bmp);
+            //    //  IPixelData pixelData = PixelDataFactory.Create(dImage.PixelData, 0);
+            //    //  DicomRange<double> dicomRange = pixelData.GetMinMax();
+            //    //  this.lbl_min.Content = "Min:" + dicomRange.Minimum.ToString();
+            //    //  this.lbl_max.Content = "Max:" + dicomRange.Maximum.ToString();
+            //    imagecount = Indexr;
+            //    this.lbl_Instance.Content = "Images:" + imagecount++.ToString();
+            //}
+            if (isDicomDirFolderPath)
             {
-                Bitmap bmp = new Bitmap(dImage.RenderImage(Indexr).As<Bitmap>());
-                DicomInstance.Source = BitmapToImageSource(bmp);
-                //  IPixelData pixelData = PixelDataFactory.Create(dImage.PixelData, 0);
-                //  DicomRange<double> dicomRange = pixelData.GetMinMax();
-                //  this.lbl_min.Content = "Min:" + dicomRange.Minimum.ToString();
-                //  this.lbl_max.Content = "Max:" + dicomRange.Maximum.ToString();
-                imagecount = Indexr;
-                this.lbl_Instance.Content = "Images:" + imagecount++.ToString();
+                DicomImage dImage = GetDicomImage(dicomDecoder.GetFilePath(dicomDirectoryRecordobj.LowerLevelDirectoryRecordCollection.ElementAt(Indexr), seriesRecordPathFileName));
+                j++;
+                if (j < dImage.NumberOfFrames)
+                {
+                    //  Indexr++;
+                    //  Indexr = Indexr >= dImage.NumberOfFrames ? Lastr : Indexr;                                  
+                    {
+                        if (dImage != null)
+                        {
+                            dImage.WindowWidth = Swindowwidth;
+                            dImage.WindowCenter = SwindowCenter;
+                            Bitmap bmp = new Bitmap(dImage.RenderImage(j).As<Bitmap>());
+                            DicomInstance.Source = BitmapToImageSource(bmp);
+                            //IPixelData pixelData = PixelDataFactory.Create(dImage.PixelData, 0);
+                            //DicomRange<double> dicomRange = pixelData.GetMinMax();
+                            // this.lbl_min.Content = "Min:" + dicomRange.Minimum.ToString();
+                            // this.lbl_max.Content = "Max:" + dicomRange.Maximum.ToString();
+                            imagecount = j;
+                            this.lbl_Instance.Content = "Images:" + imagecount++.ToString();
+                        }
+                    }
+                }
+                else
+                {
+                    Indexr++;
+                    // Indexr = Indexr >= dicomlist.Count ? Lastr : Indexr;
+                    Indexr = Indexr >= dicomDirectoryRecordobj.LowerLevelDirectoryRecordCollection.Count() ? Lastr : Indexr;
+                    if (dImage != null)
+                    {
+                        dImage.WindowWidth = Swindowwidth;
+                        dImage.WindowCenter = SwindowCenter;
+                        Bitmap bmp = new Bitmap(dImage.RenderImage(0).As<Bitmap>());
+                        DicomInstance.Source = BitmapToImageSource(bmp);
+                        //   IPixelData pixelData = PixelDataFactory.Create(dImage.PixelData, 0);
+                        //DicomRange<double> dicomRange = pixelData.GetMinMax();
+                        // this.lbl_min.Content = "Min:" + dicomRange.Minimum.ToString();
+                        // this.lbl_max.Content = "Max:" + dicomRange.Maximum.ToString();
+                        imagecount = Indexr;                                                               
+                        this.lbl_Instance.Content = "Images:" + imagecount++.ToString();
+                    }
+                }
+             }
+            else
+            {
+                DicomImage dImage = GetDicomImage(dicomlist[Indexr]);
+                j++;
+                if (j < dImage.NumberOfFrames)
+                {
+                    //  Indexr++;
+                    //  Indexr = Indexr >= dImage.NumberOfFrames ? Lastr : Indexr;                                  
+                    {
+                        if (dImage != null)
+                        {
+                            dImage.WindowWidth = Swindowwidth;
+                            dImage.WindowCenter = SwindowCenter;
+                            Bitmap bmp = new Bitmap(dImage.RenderImage(j).As<Bitmap>());
+                            DicomInstance.Source = BitmapToImageSource(bmp);
+                            //IPixelData pixelData = PixelDataFactory.Create(dImage.PixelData, 0);
+                            //DicomRange<double> dicomRange = pixelData.GetMinMax();
+                            // this.lbl_min.Content = "Min:" + dicomRange.Minimum.ToString();
+                            // this.lbl_max.Content = "Max:" + dicomRange.Maximum.ToString();
+                            imagecount = j;
+                            this.lbl_Instance.Content = "Images:" + imagecount++.ToString();
+                        }
+                    }
+                }
+                else
+                {
+                        Indexr++;               
+                        Indexr = Indexr >= dicomlist.Count ? Lastr : Indexr;                      
+                        if(looping!=true&&Indexr==0)
+                        {
+                           dispatcherTimer.Stop();                      
+                        }                 
+
+                    if (dImage != null)
+                    {
+                        dImage.WindowWidth = Swindowwidth;
+                        dImage.WindowCenter = SwindowCenter;
+                        Bitmap bmp = new Bitmap(dImage.RenderImage(0).As<Bitmap>());
+                        DicomInstance.Source = BitmapToImageSource(bmp);
+                        //   IPixelData pixelData = PixelDataFactory.Create(dImage.PixelData, 0);
+                        //DicomRange<double> dicomRange = pixelData.GetMinMax();
+                        // this.lbl_min.Content = "Min:" + dicomRange.Minimum.ToString();
+                        // this.lbl_max.Content = "Max:" + dicomRange.Maximum.ToString();
+                        imagecount = Indexr;
+                        this.lbl_Instance.Content = "Images:" + imagecount++.ToString();
+                    }
+                }
             }
         }
         public bool Sniploop()
@@ -370,6 +587,11 @@ namespace ImageViewer.Screens
         public bool stopsniploop()
         {
             dispatcherTimer.Stop();
+            return true;
+        }
+        public bool SetInterval()
+        {
+            dispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, frameTime);
             return true;
         }
         public DicomImage GetDicomImage(string dicomFile)
@@ -392,13 +614,10 @@ namespace ImageViewer.Screens
         [Obsolete]
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
-            dispatcherTimer.Tick += new EventHandler(dispatcherTimer_Tick);
-   
-            
+            dispatcherTimer.Tick += new EventHandler(dispatcherTimer_Tick);            
                Indexr = 0;
-                j = 0;
-            DicomImage dImage;
-      
+               j = 0;
+            DicomImage dImage;    
              if (dicomlist.Count>0)
               {
                 dImage = GetDicomImage(dicomlist[Indexr]);
@@ -410,42 +629,33 @@ namespace ImageViewer.Screens
                     pixeldatheight = dImage.Height;
                     Bitmap bmp = new Bitmap(dImage.RenderImage(0).As<Bitmap>());
                     DicomInstance.RenderTransform = new MatrixTransform();
-
                     DicomInstance.Source = (BitmapToImageSource(bmp));
-
                 }
                 else
                 {
                     Console.WriteLine("dicomlist count is @ user control * ******" + dicomlist.Count);
                     DicomInstance.Source = null;
                 }
-
                 SetWindowInfo(dImage);
-                Zoom = 2;
+              //  Zoom = 0.5;
+            }
+            else if(isDicomDirFolderPath)
+            {
+                dImage = GetDicomImage(dicomDecoder.GetFilePath(dicomDirectoryRecordobj.LowerLevelDirectoryRecordCollection.ElementAt(indexr), seriesRecordPathFileName));
+                if (dImage != null)
+                {
+                    Swindowwidth = dImage.WindowWidth;
+                    SwindowCenter = dImage.WindowCenter;
+                    pixeldatwidth = dImage.Width;
+                    pixeldatheight = dImage.Height;
+                    Bitmap bmp = new Bitmap(dImage.RenderImage(0).As<Bitmap>());
+                    DicomInstance.RenderTransform = new MatrixTransform();
+                    DicomInstance.Source = (BitmapToImageSource(bmp));
+                }
 
             }
-            //else
-            //{
-            //    dImage = GetDicomImage(dicomDecoder.GetFilePath(dicomDirectoryRecordobj.LowerLevelDirectoryRecordCollection.First(), seriesRecordPathFileName));
-            //    if (dImage != null)
-            //    {
-            //        Swindowwidth = dImage.WindowWidth;
-            //        SwindowCenter = dImage.WindowCenter;
-            //        pixeldatwidth = dImage.Width;
-            //        pixeldatheight = dImage.Height;
-            //        Bitmap bmp = new Bitmap(dImage.RenderImage(0).As<Bitmap>());
-            //        DicomInstance.RenderTransform = new MatrixTransform();
-
-            //        DicomInstance.Source = (BitmapToImageSource(bmp));
-
-            //    }
-
-            //}
-
-
-
+            retrieveScoutParam();
             //canvas1.RenderTransform = new ScaleTransform(2.0, 2.0, 512 / 2, 512 / 2);
-
         }
         public BitmapImage BitmapToImageSource(Bitmap bitmap)
         {
@@ -462,20 +672,105 @@ namespace ImageViewer.Screens
             }
         }
         int imagecount = 0;
-      
-  
+
+        public void setScoutCoordinates(int line1X1, int line1Y1, int line1X2, int line1Y2, int line2X1, int line2Y1, int line2X2, int line2Y2)
+        {
+            displayScout = true;
+            scoutLine1X1 = line1X1;
+            scoutLine1X2 = line1X2;
+            scoutLine1Y1 = line1Y1;
+            scoutLine1Y2 = line1Y2;
+            scoutLine2X1 = line2X1;
+            scoutLine2X2 = line2X2;
+            scoutLine2Y1 = line2Y1;
+            scoutLine2Y2 = line2Y2;
+        }
+
+        //public void setAxisCoordinates(int leftx, int lefty, int rightx, int righty, int topx, int topy, int bottomx, int bottomy)
+        //{
+        //    axisLeftX = leftx;
+        //    axisLeftY = lefty;
+        //    axisRightX = rightx;
+        //    axisRightY = righty;
+        //    axisTopX = topx;
+        //    axisTopY = topy;
+        //    axisBottomX = bottomx;
+        //    axisBottomY = bottomy;
+        //}
+
+        private void retrieveScoutParam()
+        {
+            try
+            {
+                DicomImage dImage = GetDicomImage(dicomlist[Indexr]);
+                frameOfReferenceUID = dImage.Dataset.Get<string>(DicomTag.FrameOfReferenceUID) != null ? dImage.Dataset.Get<string>(DicomTag.FrameOfReferenceUID) : "";
+                imagePosition = dImage.Dataset.Get<string>(DicomTag.ImagePositionPatient, 0) != null ? dImage.Dataset.Get<string>(DicomTag.ImagePositionPatient, 0) + "\\" + dImage.Dataset.Get<string>(DicomTag.ImagePositionPatient, 1) + "\\" + dImage.Dataset.Get<string>(DicomTag.ImagePositionPatient, 2) : null;
+                imageOrientation = dImage.Dataset.Get<string>(DicomTag.ImageOrientationPatient) != null ? dImage.Dataset.Get<string>(DicomTag.ImageOrientationPatient, 0) + "\\" + dImage.Dataset.Get<string>(DicomTag.ImageOrientationPatient, 1) + "\\" + dImage.Dataset.Get<string>(DicomTag.ImageOrientationPatient, 2) + "\\" + dImage.Dataset.Get<string>(DicomTag.ImageOrientationPatient, 3) + "\\" + dImage.Dataset.Get<string>(DicomTag.ImageOrientationPatient, 4) + "\\" + dImage.Dataset.Get<string>(DicomTag.ImageOrientationPatient, 5) : null;
+               // imageType = dImage.Dataset.Get(DicomTag.ImageType) != null ? dImage.Dataset.Get<string>(DicomTag.ImageType) : null;
+                pixelSpacing = dImage.Dataset.Get<string>(DicomTag.PixelSpacing) != null ? dImage.Dataset.Get<string>(DicomTag.PixelSpacing, 0) + "\\" + dImage.Dataset.Get<string>(DicomTag.PixelSpacing, 1) : null;
+                //row = dImage.Dataset.Get<string>(DicomTag.Rows) != null ? Integer.parseInt(dataset.getString(Tags.Rows)) : 0;
+                //column = dImage.Dataset.Get<string>(DicomTag.Columns) != null ? Integer.parseInt(dataset.getString(Tags.Columns)) : 0;
+                //Dataset referencedImageSequence = dataset.getItem(Tag.ReferencedImageSequence) != null ? dataset.getItem(Tag.ReferencedImageSequence) : null;
+                imageType = dImage.Dataset.Get<string[]>(DicomTag.ImageType);
+                if (imageType != null)
+                {
+                    if (imageType.Length >= 3 && imageType[2].SequenceEqual("LOCALIZER"))
+                    {
+                        isLocalizer = true;
+                    }
+                    else
+                    {
+                        //if (referencedImageSequence != null)
+                        //{
+                        //    referencedSOPInstanceUID = referencedImageSequence.getString(Tag.ReferencedSOPInstanceUID);
+                        //}
+                        isLocalizer = false;
+                    }
+                }
+
+             //   findOrientation();
+            }
+            catch (Exception e)
+            {
+               // e.printStackTrace();
+            }
+
+        }
+
+        //private void findOrientation()
+        //{
+        //    string [] imageOrientationArray;
+        //    if (imageOrientation != null)
+        //    {
+        //        imageOrientationArray = imageOrientation.Split('\\');
+        //        float _imgRowCosx = float.Parse(imageOrientationArray[0]);
+        //        float _imgRowCosy = float.Parse(imageOrientationArray[1]);
+        //        float _imgRowCosz = float.Parse(imageOrientationArray[2]);
+        //        float _imgColCosx = float.Parse(imageOrientationArray[3]);
+        //        float _imgColCosy = float.Parse(imageOrientationArray[4]);
+        //        float _imgColCosz = float.Parse(imageOrientationArray[5]);
+        //        orientationLabel = getOrientationLabelFromImageOrientation(_imgRowCosx, _imgRowCosy, _imgRowCosz, _imgColCosx, _imgColCosy, _imgColCosz);
+        //        if (orientationLabel.equalsIgnoreCase("CORONAL") || orientationLabel.equalsIgnoreCase("SAGITTAL"))
+        //        {
+        //            isLocalizer = true;
+        //        }
+        //    }
+        //}
+
         private void Border_MouseWheel(object sender, MouseWheelEventArgs e)
         {
             //Imageborder.Background = Brushes.Black;
-            DicomImage dImage = GetDicomImage(dicomlist[Indexr]);
-            //DicomImage dImage = GetDicomImage(dicomDecoder.GetFilePath(dicomDirectoryRecordobj.LowerLevelDirectoryRecordCollection.ElementAt(Indexr), seriesRecordPathFileName));
-            j++;
-            if (j<dImage.NumberOfFrames)
+            //  DicomImage dImage = GetDicomImage(dicomlist[Indexr]);
+            if(isDicomDirFolderPath)
             {
-               
-                //  Indexr++;
-                //  Indexr = Indexr >= dImage.NumberOfFrames ? Lastr : Indexr;                                  
+                DicomImage dImage = GetDicomImage(dicomDecoder.GetFilePath(dicomDirectoryRecordobj.LowerLevelDirectoryRecordCollection.ElementAt(Indexr), seriesRecordPathFileName));
+                j++;
+                if (j < dImage.NumberOfFrames)
                 {
+
+                    //  Indexr++;
+                    //  Indexr = Indexr >= dImage.NumberOfFrames ? Lastr : Indexr;                                  
+                    {
                         if (dImage != null)
                         {
                             dImage.WindowWidth = Swindowwidth;
@@ -490,28 +785,78 @@ namespace ImageViewer.Screens
                             this.lbl_Instance.Content = "Images:" + imagecount++.ToString();
                         }
                     }
-                
+
+                }
+                else
+                {
+                    Indexr++;
+
+                    // Indexr = Indexr >= dicomlist.Count ? Lastr : Indexr;
+                    Indexr = Indexr >= dicomDirectoryRecordobj.LowerLevelDirectoryRecordCollection.Count() ? Lastr : Indexr;
+
+                    if (dImage != null)
+                    {
+                        dImage.WindowWidth = Swindowwidth;
+                        dImage.WindowCenter = SwindowCenter;
+                        Bitmap bmp = new Bitmap(dImage.RenderImage(0).As<Bitmap>());
+                        DicomInstance.Source = BitmapToImageSource(bmp);
+                        //   IPixelData pixelData = PixelDataFactory.Create(dImage.PixelData, 0);
+                        //DicomRange<double> dicomRange = pixelData.GetMinMax();
+                        // this.lbl_min.Content = "Min:" + dicomRange.Minimum.ToString();
+                        // this.lbl_max.Content = "Max:" + dicomRange.Maximum.ToString();
+                        imagecount = Indexr;
+                        this.lbl_Instance.Content = "Images:" + imagecount++.ToString();
+                    }
+                }
+
             }
             else
             {
-                Indexr++;
-                
-                Indexr = Indexr >= dicomlist.Count ? Lastr : Indexr;
-
-                if (dImage != null)
+                DicomImage dImage = GetDicomImage(dicomlist[Indexr]);
+                j++;
+                if (j < dImage.NumberOfFrames)
                 {
-                    dImage.WindowWidth = Swindowwidth;
-                    dImage.WindowCenter = SwindowCenter;
-                    Bitmap bmp = new Bitmap(dImage.RenderImage(0).As<Bitmap>());
-                    DicomInstance.Source = BitmapToImageSource(bmp);
-                    //   IPixelData pixelData = PixelDataFactory.Create(dImage.PixelData, 0);
-                    //DicomRange<double> dicomRange = pixelData.GetMinMax();
-                    // this.lbl_min.Content = "Min:" + dicomRange.Minimum.ToString();
-                    // this.lbl_max.Content = "Max:" + dicomRange.Maximum.ToString();
-                    imagecount = Indexr;
-                    this.lbl_Instance.Content = "Images:" + imagecount++.ToString();
+                    //  Indexr++;
+                    //  Indexr = Indexr >= dImage.NumberOfFrames ? Lastr : Indexr;                                  
+                    {
+                        if (dImage != null)
+                        {
+                            dImage.WindowWidth = Swindowwidth;
+                            dImage.WindowCenter = SwindowCenter;
+                            Bitmap bmp = new Bitmap(dImage.RenderImage(j).As<Bitmap>());
+                            DicomInstance.Source = BitmapToImageSource(bmp);
+                            //IPixelData pixelData = PixelDataFactory.Create(dImage.PixelData, 0);
+                            //DicomRange<double> dicomRange = pixelData.GetMinMax();
+                            // this.lbl_min.Content = "Min:" + dicomRange.Minimum.ToString();
+                            // this.lbl_max.Content = "Max:" + dicomRange.Maximum.ToString();
+                            imagecount = j;
+                            this.lbl_Instance.Content = "Images:" + imagecount++.ToString();
+                        }
+                    }
                 }
-            }            
+                else
+                {
+                    Indexr++;
+
+                     Indexr = Indexr >= dicomlist.Count ? Lastr : Indexr;
+                 
+
+                    if (dImage != null)
+                    {
+                        dImage.WindowWidth = Swindowwidth;
+                        dImage.WindowCenter = SwindowCenter;
+                        Bitmap bmp = new Bitmap(dImage.RenderImage(0).As<Bitmap>());
+                        DicomInstance.Source = BitmapToImageSource(bmp);
+                        //   IPixelData pixelData = PixelDataFactory.Create(dImage.PixelData, 0);
+                        //DicomRange<double> dicomRange = pixelData.GetMinMax();
+                        // this.lbl_min.Content = "Min:" + dicomRange.Minimum.ToString();
+                        // this.lbl_max.Content = "Max:" + dicomRange.Maximum.ToString();
+                        imagecount = Indexr;
+                        this.lbl_Instance.Content = "Images:" + imagecount++.ToString();
+                    }
+                }
+            }
+                       
         }
 
         [Obsolete]
@@ -529,13 +874,18 @@ namespace ImageViewer.Screens
                 //if (dicomImage.Dataset.Contains(DicomTag.PatientBirthDate))
                 //    this.lbl_PatientBirthdate.Content = dicomImage.Dataset.Get<DateTime>(DicomTag.PatientBirthDate);
                 if (dicomImage.Dataset.Contains(DicomTag.StudyDescription))
-                    this.lbl_StudyDescription.Content = dicomImage.Dataset.Get<string>(DicomTag.StudyDescription).ToString();
-                this.lbl_Instance.Content = "Images:" + dicomImage.NumberOfFrames.ToString();
+                {
+                    //this.lbl_StudyDescription.Content = dicomImage.Dataset.GetSequence(DicomTag.StudyDescription).ToString();
+                    this.lbl_StudyDescription.Content = dicomImage.Dataset.Get<string>(DicomTag.StudyDescription,"StudyDescription").ToString();
+                }
+                 this.lbl_Instance.Content = "Images:" + dicomImage.NumberOfFrames.ToString();
                 if (dicomImage.Dataset.Contains(DicomTag.StudyDate))
                     this.lbl_StudyDate.Content = dicomImage.Dataset.Get<DateTime>(DicomTag.StudyDate).ToString();
                 if (dicomImage.Dataset.Contains(DicomTag.SeriesNumber))
                     this.lbl_Series.Content = "Series No:" + dicomImage.Dataset.Get<int>(DicomTag.SeriesNumber).ToString();
                 IPixelData pixelData = PixelDataFactory.Create(dicomImage.PixelData, 0);
+
+
             }
             catch (Exception ex)
             {
@@ -647,8 +997,17 @@ namespace ImageViewer.Screens
             dicominstancepoint.X = (e.GetPosition(DicomInstance).X * bitmapImage.PixelWidth / DicomInstance.ActualWidth);
             dicominstancepoint.Y = (e.GetPosition(DicomInstance).Y * bitmapImage.PixelHeight / DicomInstance.ActualHeight);
             // var pixeldatatest = DicomImageSOURCE.PixelData; // returns DicomPixelData type
-            // DicomImage dImage = GetDicomImage(dicomDecoder.GetFilePath(dicomDirectoryRecordobj.LowerLevelDirectoryRecordCollection.ElementAt(Indexr), seriesRecordPathFileName));        
-            DicomImage dImage = GetDicomImage(dicomlist[Indexr]);
+            //
+            DicomImage dImage;
+            if (isDicomDirFolderPath)
+            {
+                dImage = GetDicomImage(dicomDecoder.GetFilePath(dicomDirectoryRecordobj.LowerLevelDirectoryRecordCollection.ElementAt(Indexr), seriesRecordPathFileName));
+            }
+            else
+            {
+              dImage = GetDicomImage(dicomlist[Indexr]);
+            }
+          
             IPixelData pixelData = null;
             if (dImage.PhotometricInterpretation != PhotometricInterpretation.Monochrome2 && dImage.PhotometricInterpretation!= PhotometricInterpretation.Rgb)
             {
@@ -660,18 +1019,12 @@ namespace ImageViewer.Screens
             if (dImage.Dataset.Contains(DicomTag.RescaleSlope))
                 rescaleSlope = dImage.Dataset.Get<int>(DicomTag.RescaleSlope);
             if (dImage.Dataset.Contains(DicomTag.PixelSpacing))
-            pixelspacingvalue = dImage.Dataset.Get<Double>(DicomTag.PixelSpacing);
+            pixelspacingvalue = dImage.Dataset.Get<Double>(DicomTag.SamplesPerPixel);
             if (WindowingToolEnabled)
             {
-
-
                 mousedowncheck = true;
 
             }
-
-
-
-
             if (Recttoolenabled)
             {
                 if (rectSelectArea != null)
@@ -808,6 +1161,8 @@ namespace ImageViewer.Screens
            
           
         }
+
+        [Obsolete]
         private void Imageborder_MouseMove(object sender, MouseEventArgs e)
         {
             // DetermineMouseSensitivity();
@@ -834,40 +1189,51 @@ namespace ImageViewer.Screens
 
                     if (linetoolenabled)
                     {
-                        //var child = (from c in canvas1.Children.OfType<FrameworkElement>()
-                        //             where "tempLine".Equals(c.Tag)
-                        //             select c).First();
-                        linetool.X1 = startpoint.X;
-                        linetool.Y1 = startpoint.Y;
-                        linetool.X2 = Mouse.GetPosition(canvas1).X;
-                        linetool.Y2 = Mouse.GetPosition(canvas1).Y;
-                        linetool.Stroke = Brushes.Black;
-                        // DrawLine(startpoint, pos);
-                        var x = Math.Min(pos.X, startpoint.X);
-                        var y = Math.Min(pos.Y, startpoint.Y);
+                            //var child = (from c in canvas1.Children.OfType<FrameworkElement>()
+                            //             where "tempLine".Equals(c.Tag)
+                            //             select c).First();
+                            linetool.X1 = startpoint.X;
+                            linetool.Y1 = startpoint.Y;
+                            linetool.X2 = Mouse.GetPosition(canvas1).X;
+                            linetool.Y2 = Mouse.GetPosition(canvas1).Y;
+                            linetool.Stroke = Brushes.Black;
+                            // DrawLine(startpoint, pos);
+                            var x = Math.Min(pos.X, startpoint.X);
+                            var y = Math.Min(pos.Y, startpoint.Y);
                                                                     
-                       double dx = startpoint.X - pos.X;
-                       double dy = startpoint.Y - pos.Y;
-                       DicomImage dImages = GetDicomImage(dicomlist[Indexr]);
-                       var geometry = new FrameGeometry(dImages.Dataset);
-                       // lets say click1 and click2 are two Point instances and give you the pixels where you want to do the measurement. 
-                       // for examle the whole diagonale of a 512x512 ct image: click1 = (0/0) and click2 = (511/511)
-                       // Point2 point2;
-                       var patientCoord1 = geometry.TransformImagePointToPatient(new Point2((int)startpoint.X, (int)startpoint.Y));
-                       var patientCoord2 = geometry.TransformImagePointToPatient(new Point2((int)Mouse.GetPosition(canvas1).X, (int)Mouse.GetPosition(canvas1).Y));
-                       double distanceInMM = patientCoord1.Distance(patientCoord2);
-                        
-                      //  double distanceMeasure = (dx * dx + dy * dy);
-                       if (distanceInMM > 0)
-                       {
-                            textBlock1.Text = distanceInMM.ToString();                          
-                            //   double distancecalculates = (distanceInMM * pixelspacingvalue);
-                            lbl_PX.Content = "distanceMeasure: " + distanceInMM;
-                       }
-                      //  Canvas.SetLeft(linetool, startpoint.X);
-                       // Canvas.SetTop(linetool, startpoint.Y);
-                        Cursor = Cursors.Hand;
-                      //  e.Handled = true;
+                           double dx = startpoint.X - pos.X;
+                           double dy = startpoint.Y - pos.Y;
+                           DicomImage dImages;
+                            if (isDicomDirFolderPath)
+                            {
+                                dImages = GetDicomImage(dicomDecoder.GetFilePath(dicomDirectoryRecordobj.LowerLevelDirectoryRecordCollection.ElementAt(Indexr), seriesRecordPathFileName));
+                            }
+                            else
+                            {
+                                dImages = GetDicomImage(dicomlist[Indexr]);
+                            }
+                    
+                            //  var geometry = new FrameGeometry(dImages.Dataset);
+
+                            // lets say click1 and click2 are two Point instances and give you the pixels where you want to do the measurement. 
+                            // for examle the whole diagonale of a 512x512 ct image: click1 = (0/0) and click2 = (511/511)
+                            // Point2 point2;
+                
+                            //    var patientCoord1 = geometry.TransformImagePointToPatient(new Point2((int)startpoint.X, (int)startpoint.Y));
+                            //  var patientCoord2 = geometry.TransformImagePointToPatient(new Point2((int)Mouse.GetPosition(canvas1).X, (int)Mouse.GetPosition(canvas1).Y));
+                            // double distanceInMM = patientCoord1.Distance(patientCoord2);
+                           double distanceMeasure = ((double)startpoint.X * (double)Mouse.GetPosition(canvas1).X + (double)startpoint.Y * (double)Mouse.GetPosition(canvas1).Y);
+                            //if (distanceInMM > 0)
+                            //{
+                            double distancecalculates = (distanceMeasure * pixelspacingvalue);                                            
+                            textBlock1.Text = distancecalculates.ToString();                          
+                             
+                                lbl_PX.Content = "distanceMeasure: " + distancecalculates;
+                           //}
+                           // Canvas.SetLeft(linetool, startpoint.X);
+                           // Canvas.SetTop(linetool, startpoint.Y);
+                            Cursor = Cursors.Hand;
+                          //  e.Handled = true;
                     }
                     if (Recttoolenabled)
                     {
@@ -907,45 +1273,15 @@ namespace ImageViewer.Screens
 
                     if(WindowingToolEnabled)
                     {
-                       // var element = sender as UIElement;
-                       // var positionmove = e.GetPosition(element);
-
-                        //winWidthBy2 = winWidth / 2;
-                        //winWidth = winMax - winMin;
-                        //winCentre = winMin + winWidthBy2;                
+                                       
                         Swindowwidth -= (int)((startpoint.X - (int)pos.X));
                         SwindowCenter -= (int)((startpoint.Y - (int)pos.Y));
-                        //winCentre -= deltaY;
-                        //winWidth -= deltaX;
-
-                        //if (winWidth < 2) winWidth = 2;
-                        //winWidthBy2 = winWidth / 2;
-
-                        //winMax = winCentre + winWidthBy2;
-                        //winMin = winCentre - winWidthBy2;
-
-                        //if (winMin >= winMax) winMin = winMax - 1;
-                        //if (winMax <= winMin) winMax = winMin + 1;
-
                         startpoint.X = (int)pos.X;
-                        startpoint.Y = (int)pos.Y;
-
-                  
-                        Refresh();
-
+                        startpoint.Y = (int)pos.Y;                 
+                        this.Refresh();
                     }
                 }
-            }          
-            else
-            {
-                //  System.Windows.Point p = e.GetPosition(RootCanvas);
-                // double pX = p.X;
-                /// double pY = p.Y;
-                // Set the coordinates of customPointer to the mouse pointer coordinates
-                //  Canvas.SetTop(customPointer, pY);
-                //  Canvas.SetLeft(customPointer, pX);
-                //  Cursor = Cursors.None;
-            }
+            }                    
         }
 
         void DrawLine(System.Windows.Point spt, System.Windows.Point ept)
@@ -965,16 +1301,9 @@ namespace ImageViewer.Screens
 
         private void Imageborder_MouseUp(object sender, MouseButtonEventArgs e)
         {
-          //  ResetZoomPoint();
-            //if (rightMouseDown == true)
-            //{
-            //    rightMouseDown = false;
-            //    //  Cursor = Cursors.Default;
-            // //   ResetZoomPoint();
-            //}
+        
             if(mousedowncheck == true && rightMouseDown==true)
-            {
-               
+            {              
                if(linetoolenabled)
                 {
                     Canvas.SetLeft(textBlock1, Mouse.GetPosition(canvas1).X);
@@ -994,15 +1323,12 @@ namespace ImageViewer.Screens
                     Canvas.SetLeft(textBlock1, Mouse.GetPosition(canvas1).X);
                     Canvas.SetTop(textBlock1, Mouse.GetPosition(canvas1).Y);
                     canvas1.Children.Add(textBlock1);
-                }
-
-              
+                }             
                 rectSelectArea = null;
                 ellipsearea = null; 
                 mousedowncheck = false;
                 linetool = null;
                 rightMouseDown = false;
-
             }
             
         }
@@ -1057,16 +1383,12 @@ namespace ImageViewer.Screens
                 if (transform != null)
                 {
                     var matrix = transform.Matrix;
-
                     System.Windows.Point center = new System.Windows.Point(DicomInstance.ActualWidth / 2.0, DicomInstance.ActualHeight / 2.0);
                     center = matrix.Transform(center);
                     Console.WriteLine("degree *************"+e.DeltaManipulation.Rotation);
                     //matrix.ScaleAt(e.DeltaManipulation.Scale.X, e.DeltaManipulation.Scale.X, center.X, center.Y);
-                     matrix.RotateAt(e.DeltaManipulation.Rotation, center.X, center.Y);
-                   
-                   
+                     matrix.RotateAt(e.DeltaManipulation.Rotation, center.X, center.Y);                
                     //matrix.Translate(e.DeltaManipulation.Translation.X, e.DeltaManipulation.Translation.Y);
-
                     DicomInstance.RenderTransform = new MatrixTransform(matrix);
                 }
             }
@@ -1084,163 +1406,16 @@ namespace ImageViewer.Screens
             fivemanipulate = false;
         }
 
-        private void OnMouseMoveHandler(object sender, MouseEventArgs e)
-        {  // Get the x and y coordinates of the mouse pointer.
-
-            //if(mousedowncheck)
-            //{
-            //    if (e.LeftButton == MouseButtonState.Released || rectSelectArea == null)
-            //        return;
-
-            //    var pos = e.GetPosition(RootCanvas);
-
-            //    // Set the position of rectangle
-            //    var x = Math.Min(pos.X, startpoint.X);
-            //    var y = Math.Min(pos.Y, startpoint.Y);
-
-            //    // Set the dimenssion of the rectangle
-            //    var w = Math.Max(pos.X, startpoint.X) - x;
-            //    var h = Math.Max(pos.Y, startpoint.Y) - y;
-
-            //    rectSelectArea.Width = w;
-            //    rectSelectArea.Height = h;
-
-            //    Canvas.SetLeft(rectSelectArea, x);
-            //    Canvas.SetTop(rectSelectArea, y);
-            //}
-            
-            //else
-            //{       
-            //}
-
-        }
-
-        private void RootCanvas_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-
-            //startpoint = e.GetPosition(RootCanvas);
-
-            //// Remove the drawn rectanglke if any.
-            //// At a time only one rectangle should be there
-            //if (rectSelectArea != null)
-            //    RootCanvas.Children.Remove(rectSelectArea);
-
-            //// Initialize the rectangle.
-            //// Set border color and width
-            //rectSelectArea = new Rectangle
-            //{
-            //    Stroke = Brushes.DarkGreen,
-            //    StrokeThickness = 2
-            //};
-
-            //Canvas.SetLeft(rectSelectArea, startpoint.X);
-            //Canvas.SetTop(rectSelectArea, startpoint.X);
-            //RootCanvas.Children.Add(rectSelectArea);
-            //mousedowncheck = true;
-        }
-
-        private void RootCanvas_MouseUp(object sender, MouseButtonEventArgs e)
-        {
-            //rectSelectArea = null;
-            //mousedowncheck = false;
-        }
+       
+       
+     
         private void canvas1_ManipulationInertiaStarting(object sender, ManipulationInertiaStartingEventArgs e)
         {
             twomanipulate = false;
             threemanipulate = false;
             fivemanipulate = false;
         }
-        //private void DicomInstance_MouseDown(object sender, MouseButtonEventArgs e)
-        //{
-        //    var element = sender as UIElement;
-        //    startpoint = e.GetPosition(canvas1);
-
-        //    // Remove the drawn rectanglke if any.
-        //    // At a time only one rectangle should be there
-        //    if (Recttoolenabled)
-        //    {
-        //        if (rectSelectArea != null)
-        //            canvas1.Children.Remove(rectSelectArea);
-
-        //        // Initialize the rectangle.
-        //        // Set border color and width
-        //        rectSelectArea = new Rectangle
-        //        {
-        //            Stroke = Brushes.DarkGreen,
-        //            StrokeThickness = 2
-        //        };
-        //        //linetool = new Line
-        //        //{
-        //        //    Stroke = Brushes.IndianRed,
-        //        //    StrokeThickness = 2
-        //        //};
-        //        Canvas.SetLeft(rectSelectArea, startpoint.X);
-        //        Canvas.SetTop(rectSelectArea, startpoint.X);
-
-        //        //Canvas.SetLeft(linetool, startpoint.X);
-        //        //Canvas.SetTop(linetool, startpoint.X);
-
-        //        canvas1.Children.Add(rectSelectArea);
-        //        mousedowncheck = true;
-        //    }
-
-        //}
-        //private void DicomInstance_MouseMove(object sender, MouseEventArgs e)
-        //{
-        //    if (mousedowncheck == true)
-        //    {
-        //        if (e.LeftButton == MouseButtonState.Released || rectSelectArea == null)
-        //            return;
-        //        var element = sender as UIElement;
-
-        //        var pos = e.GetPosition(canvas1);
-
-        //        if (linetoolenabled)
-        //        {
-        //            DrawLine(startpoint, pos);
-
-        //            //  Canvas.SetLeft(linetool, x);
-        //            //  Canvas.SetTop(linetool, y);
-        //            double pX = pos.X;
-        //            double pY = pos.Y;
-
-        //            // Set the coordinates of customPointer to the mouse pointer coordinates
-        //            //Canvas.SetTop(customPointer, pY);
-        //            //Canvas.SetLeft(customPointer, pX);
-        //            Cursor = Cursors.Pen;
-
-        //        }
-
-        //        if (Recttoolenabled)
-        //        {
-        //            //  Set the position of rectangle
-        //            var x = Math.Min(pos.X, startpoint.X);
-        //            var y = Math.Min(pos.Y, startpoint.Y);
-
-        //            // Set the dimenssion of the rectangle
-        //            var w = Math.Max(pos.X, startpoint.X) - x;
-        //            var h = Math.Max(pos.Y, startpoint.Y) - y;
-
-        //            rectSelectArea.Width = w;
-        //            rectSelectArea.Height = h;
-        //            Canvas.SetLeft(rectSelectArea, x);
-        //            Canvas.SetTop(rectSelectArea, y);
-        //            Cursor = Cursors.Hand;
-        //        }
-        //    }
-        //}
-
-        //private void DicomInstance_MouseUp(object sender, MouseButtonEventArgs e)
-        //{
-        //    if (mousedowncheck == true)
-        //    {
-        //        rectSelectArea = null;
-        //        mousedowncheck = false;
-        //        linetool = null;
-        //    }
-        //}
-
-        // }
+   
     }
 }
 

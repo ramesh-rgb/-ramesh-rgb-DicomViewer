@@ -4,10 +4,26 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ImageViewer"
-        mc:Ignorable="d"
+        mc:Ignorable="d"                        
    Title="MainWindow" WindowStartupLocation="CenterScreen" FontWeight="Bold" Loaded="Window_Loaded" Background="#FFF5F4F4" SizeToContent="WidthAndHeight" ResizeMode="NoResize" WindowState="Maximized" WindowStyle="None" Width="1920" Height="1070" Closing="Window_Closing" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
     <!--Title="MainWindow" WindowStartupLocation="CenterScreen" FontWeight="Bold" Loaded="Window_Loaded" Background="#FFF5F4F4" SizeToContent="WidthAndHeight" ResizeMode="NoResize" WindowState="Maximized" WindowStyle="None" Width="1920" Height="1080" Closing="Window_Closing">-->
     <Window.Resources>
+        <Style x:Key="OpenDir" TargetType="{x:Type Button}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Border  Grid.ColumnSpan="2" BorderThickness="1">
+                                <Border.Background>
+                                    <ImageBrush ImageSource="/ImageViewer;component/Icons/opendir50.png"/>
+                                </Border.Background>
+                            </Border>
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Margin="32,13,2,13"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <Style x:Key="ComboBoxTest2" TargetType="{x:Type ComboBox}">
             <Setter Property="Template">
                 <Setter.Value>
@@ -18,8 +34,8 @@
                                     <ControlTemplate>
                                         <Grid>
                                             <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="5*" />
-                                                <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="5*"/>
+                                            <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
                                             <Border x:Name="Border"  Grid.ColumnSpan="2" CornerRadius="5" Background="Beige" BorderBrush="Black" BorderThickness="1" />
                                             <Border Grid.Column="0" CornerRadius="5,0,0,5"  Margin="1"  Background="AliceBlue"  BorderBrush="Black" BorderThickness="0,0,1,0" />
@@ -119,7 +135,23 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
+        <Style x:Key="tag" TargetType="{x:Type Button}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Border  Grid.ColumnSpan="2" BorderThickness="1">
+                                <Border.Background>
+                                    <ImageBrush ImageSource="/ImageViewer;component/Icons/meta-data.png"/>
+                                </Border.Background>
+                            </Border>
+                            <!--<Ellipse Fill="Green"  x:Name="theEllipse"/>-->
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <Style x:Key="RotateLefts" TargetType="{x:Type Button}">
             <Setter Property="Template">
                 <Setter.Value>
@@ -187,7 +219,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
         <Style x:Key="Bone" TargetType="{x:Type Button}">
             <Setter Property="Template">
                 <Setter.Value>
@@ -278,7 +309,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Grid>
-                            <Border  BorderThickness="1">
+                            <Border  Name="_BorderRect" BorderThickness="1">
                                 <Border.Background>
                                     <ImageBrush ImageSource="/ImageViewer;component/Icons/rectangle48.png"/>
                                 </Border.Background>
@@ -295,15 +326,26 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Grid>
-                            <Border  BorderThickness="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="6*"/>
+                                <ColumnDefinition Width="10*"/>
+                                <ColumnDefinition/>
+                            </Grid.ColumnDefinitions>
+                            <Border  Name="_BorderLine"  BorderThickness="1" Grid.ColumnSpan="3">
                                 <Border.Background>
                                     <ImageBrush ImageSource="/ImageViewer;component/Icons/measurement.png"/>
                                 </Border.Background>
                             </Border>
                             <!--<Ellipse Fill="Green"  x:Name="theEllipse"/>-->
-                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            <ContentPresenter HorizontalAlignment="Left" Grid.Column="1" Margin="5,0,0,0"/>
                         </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter TargetName="_BorderLine"  Property="BorderBrush" Value="red" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
                     </ControlTemplate>
+
                 </Setter.Value>
             </Setter>
         </Style>
@@ -312,14 +354,18 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Grid>
-                            <Border  BorderThickness="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition/>
+                            </Grid.ColumnDefinitions>
+                            <Border Name="_Border" BorderThickness="1">
                                 <Border.Background>
                                     <ImageBrush ImageSource="/ImageViewer;component/Icons/Oval.png"/>
                                 </Border.Background>
                             </Border>
                             <!--<Ellipse Fill="Green"  x:Name="theEllipse"/>-->
-                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            <ContentPresenter HorizontalAlignment="Center"/>
                         </Grid>
+
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -349,6 +395,40 @@
                             <Border  BorderThickness="1">
                                 <Border.Background>
                                     <ImageBrush ImageSource="/ImageViewer;component/Icons/removemeasure50.png"/>
+                                </Border.Background>
+                            </Border>
+                            <!--<Ellipse Fill="Green"  x:Name="theEllipse"/>-->
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="CiniLoopTool" TargetType="{x:Type Button}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Border  BorderThickness="1">
+                                <Border.Background>
+                                    <ImageBrush ImageSource="/ImageViewer;component/Icons/filmstrip.png"/>
+                                </Border.Background>
+                            </Border>
+                            <!--<Ellipse Fill="Green"  x:Name="theEllipse"/>-->
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="Overlaytool" TargetType="{x:Type Button}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Border  BorderThickness="1">
+                                <Border.Background>
+                                    <ImageBrush ImageSource="/ImageViewer;component/Icons/Overlay.png"/>
                                 </Border.Background>
                             </Border>
                             <!--<Ellipse Fill="Green"  x:Name="theEllipse"/>-->
@@ -397,7 +477,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Grid>
-                            <Border  BorderThickness="1">
+                            <Border Name="_BorderLayout" BorderThickness="1">
                                 <Border.Background>
                                     <ImageBrush ImageSource="/ImageViewer;component/Icons/Layout.png"/>
                                 </Border.Background>
@@ -426,6 +506,70 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style x:Key="closestyle" TargetType="{x:Type Button}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Border BorderBrush="#FF242632" CornerRadius="5" BorderThickness="2" Opacity="0.8" Margin="5,0,0,5">
+                                <Border.Background>
+                                    <ImageBrush ImageSource="/ImageViewer;component/icons/close.png"/>
+                                </Border.Background>
+                            </Border>
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="SkipPrev" TargetType="{x:Type Button}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Border x:Name="_Borderprev" BorderBrush="#FF242632" CornerRadius="5" BorderThickness="2" Opacity="0.8" Margin="5,0,0,5">
+                                <Border.Background>
+                                    <ImageBrush ImageSource="/ImageViewer;component/icons/skip-previous.png"/>
+                                </Border.Background>
+                            </Border>
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="SkipNext" TargetType="{x:Type Button}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Border  Name="_SkipNext" BorderBrush="#FF242632" CornerRadius="5" BorderThickness="2" Opacity="0.8" Margin="5,0,0,5">
+                                <Border.Background>
+                                    <ImageBrush ImageSource="/ImageViewer;component/icons/skip-next.png"/>
+                                </Border.Background>
+                            </Border>
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="PauseCircle" TargetType="{x:Type Button}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Border BorderBrush="#FF242632" CornerRadius="5" BorderThickness="2" Opacity="0.8" Margin="5,0,0,5">
+                                <Border.Background>
+                                    <ImageBrush ImageSource="/ImageViewer;component/icons/pause-circle.png"/>
+                                </Border.Background>
+                            </Border>
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
     <Grid  Margin="0,0,0,0"  Width="1920" Height="1070" HorizontalAlignment="Left" VerticalAlignment="Top">
         <Grid.ColumnDefinitions>
@@ -437,9 +581,8 @@
             <RowDefinition Height="220"/>
             <RowDefinition Height="850"/>
         </Grid.RowDefinitions>
-
         <!--<ctrl:flyff x:Name="imageviewcontrol" HorizontalAlignment="Left" Grid.Row="1" Width="1329" Grid.Column="1" Margin="43,60,0,71"/>-->
-        <StackPanel x:Name="MainDicomPanel" Grid.Column="1" Background="Black"  Height="1070" VerticalAlignment="Top" Grid.RowSpan="2"/>
+        <WrapPanel x:Name="MainDicomPanel" Grid.Column="1" Background="Black" Width="1570" Grid.RowSpan="2" Grid.ColumnSpan="2" Margin="0,0,50,0"/>
         <!--<TextBox x:Name="Windowleveltxt" HorizontalAlignment="Left" Height="23" Margin="135,126,0,0" Grid.Row="1" TextWrapping="Wrap" VerticalAlignment="Top" Width="55"/>
         <TextBox x:Name="windowwidthtxt" HorizontalAlignment="Left" Height="23" Margin="135,170,0,0" Grid.Row="1" TextWrapping="Wrap" VerticalAlignment="Top" Width="55"/>
         <Button Content="OK" HorizontalAlignment="Left" Height="25" Margin="80,215,0,0" Grid.Row="1" VerticalAlignment="Top" Width="65" RenderTransformOrigin="-1.571,0.4" Click="Button_Click"/>
@@ -508,21 +651,21 @@
                 </Popup>
             </Canvas >
         </StackPanel>-->
-        <StackPanel Background="#FF06162C" Margin="0,0,0,0" Width="300" Height="220">
+        <StackPanel Background="#FF06162C" Width="300" Height="220">
             <Button x:Name="Logobut" Content="" Width="300" Height="73"  FontSize="18" Style="{DynamicResource Logoresource}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"  Margin="0,0,0,1" />
             <Label x:Name="Patientnamelbl" Width="280" Height="25" FontSize="14" FontFamily="Times New Roman" Foreground="White" BorderBrush="#FF0B72E7" Content="" HorizontalAlignment="Left" Margin="0,15,0,1" VerticalAlignment="Top"/>
             <Label x:Name="StudyDescriptionlbl" Height="25" Width="280" HorizontalAlignment="Left" Margin="0,15,0,2" Foreground="#FFFF7E76" Content="" FontSize="12" VerticalAlignment="Top" Background="{x:Null}"/>
             <Label x:Name="datelbl" Height="25" Width="80" HorizontalAlignment="Left" Margin="0,15,0,0" Foreground="#FF00CCFF" Content="" FontSize="11"/>
             <Label x:Name="totalserieslbl" Height="25" RenderTransformOrigin="0.5,0.5" Width="70" HorizontalAlignment="Right" Margin="0,-30,0,0" Foreground="#FF00CCFF" Content="" FontSize="11"/>
         </StackPanel>
-        <ScrollViewer Margin="0,0,0,0" Grid.Row="1" Width="300" Height="850" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" CanContentScroll="True">
+        <ScrollViewer Grid.Row="1" Width="300" Height="850" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" CanContentScroll="True" MinWidth="1">
             <StackPanel x:Name="Imagethumbnailpanel" Background="#FF06162C"/>
         </ScrollViewer>
         <StackPanel Orientation="Vertical" Grid.Column="2" Background="#FF06162C" Grid.RowSpan="2" Width="70">
-            <Button x:Name="OpenDicomDir" Content="" Width="34" Height="34" Click="OpenDicomDir_Click" FontSize="18" Style="{DynamicResource OpenFolder}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Black" Margin="0,10,0,10" Visibility="Collapsed" />
+            <Button x:Name="OpenDicomDir" Content="" Width="38" Height="40" Click="OpenDicomDir_Click" FontSize="18" Style="{DynamicResource OpenDir}" HorizontalAlignment="Stretch" Background="Black" Margin="0,20,0,7" Visibility="Visible" />
             <Button x:Name="OpenFolder" Content="" Width="34" Height="34" FontSize="18" Style="{DynamicResource OpenFolder}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Black" Margin="0,10,0,10" Visibility="Visible" Click="OpenFolder_Click" />
             <Button x:Name="OpenFile" Content="" Width="34" Height="34" Click="OpenFile_Click" FontSize="18" Style="{DynamicResource OpenFile}" Margin="0,10,0,10" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Black" />
-            <Button x:Name="Layoutform" Content="" Width="34" Height="34" Click="Layout_Click" FontSize="18" Style="{DynamicResource Layout}" Margin="0,10,0,10" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Black" />
+            <Button x:Name="Layoutform" Content="" Width="34" Height="34" Click="Layout_Click" FontSize="18" Style="{DynamicResource Layout}" Margin="0,10,0,10" HorizontalAlignment="Stretch" Background="Black" />
             <Button x:Name="LineeButton" Content="" Height="34" Width="34" Click="Line_Click" BorderBrush="#FFFBFBFB" Foreground="#FF121010" Style="{DynamicResource Linetool}" Background="White" Margin="0,10,0,10"/>
             <Button x:Name="FlipHtl" Content="" Height="34"  Width="34" Click="FlipHztl_Click" FontSize="18" Style="{DynamicResource FlipHztlresource}" RenderTransformOrigin="8.633,0.251" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,10,0,10"/>
             <Button x:Name="FlipVertl" Content="" Width="34" Height="34" Click="FlipVertl_Click" FontSize="18" Style="{DynamicResource FlipVertresource}" Background="White" Foreground="White" Margin="0,10,0,10" />
@@ -532,9 +675,13 @@
             <Button x:Name="ZoomOutBut" Content="" Width="34" Height="34" FontSize="18" Click="ZoomOut" Style="{DynamicResource ZoomOut}" HorizontalAlignment="Stretch" Margin="0,10,0,10" />
             <Button x:Name="CustomWindowingButton" Content="34" Height="34" Width="34" Click="CustomWindowingButton_Click" Style="{DynamicResource Windowing}" BorderBrush="#FFFBFBFB" Foreground="White" RenderTransformOrigin="0.93,0.418" Margin="0,10,0,10"/>
             <Button x:Name="ResetButton" Content="" Height="34" Width="34" Click="ResetDeltamanipulation_Click" Style="{DynamicResource Reset}" BorderBrush="#FFFBFBFB" Foreground="White" RenderTransformOrigin="0.93,0.418" Margin="0,10,0,10"/>
-            <Button x:Name="RectangleButton" Content="Rec" Height="34" Width="34" Click="Rectangle_Click" Style="{DynamicResource Recttangle}" BorderBrush="#FFFBFBFB" Foreground="#FF121010" Background="White" Margin="0,10,0,10"/>
-            <Button x:Name="ElipseButton" Content="" Height="34" Width="34" Click="ElipseButton_Click" BorderBrush="#FFFBFBFB" Foreground="#FF121010" Style="{DynamicResource Elipsetool}" Background="White" Margin="0,10,0,10"/>
-            <Button x:Name="DeleteButton" Content="" Height="34" Width="34" Click="Delete_Click" BorderBrush="#FFFBFBFB" Foreground="#FF121010" Style="{DynamicResource Deletetool}" Background="White" Margin="0,10,0,10"/>
+            <Button x:Name="RectangleButton" Content="Rec" Height="30" Width="31" Click="Rectangle_Click" Style="{DynamicResource Recttangle}" BorderBrush="#FFFBFBFB" Foreground="#FF121010" Background="White" Margin="0,10,0,10"/>
+            <Button x:Name="ElipseButton" Content="" Height="37" Width="32" Click="ElipseButton_Click" BorderBrush="#FFFBFBFB" Foreground="#FF121010" Style="{DynamicResource Elipsetool}" Background="White" Margin="0,10,0,10"/>
+            <Button x:Name="DicomTag_but" Content="" Click="DicomTagbut_Click" Style="{DynamicResource tag}" Height="33" Width="32" Margin="0,10,0,10"/>
+            <Button x:Name="DeleteButton" Content="" Height="31" Width="32" Click="Delete_Click" BorderBrush="#FFFBFBFB" Foreground="#FF121010" Style="{DynamicResource Deletetool}" Margin="0,10,0,10" Background="White"/>
+            <Button x:Name="Overlay" Content="" Height="32" Width="32" Click="Overlay_Click" BorderBrush="#FFFBFBFB" Foreground="#FF121010"  Background="White" Style="{DynamicResource Overlaytool}" Margin="0,10,0,10"/>
+            <Button x:Name="CiniLoop"  Content="" Height="32" Width="32" Click="CiniLoop_Click" BorderBrush="#FFFBFBFB" Foreground="#FF121010"  Background="White" Style="{DynamicResource CiniLoopTool}" Margin="0,10,0,10" />
+            <Button x:Name="ScoutLine"  Content="" Height="32" Width="32" Click="Scout" BorderBrush="#FFFBFBFB" Foreground="#FF121010"  Background="White" Margin="0,10,0,10" />
             <Popup Name="MyPopup" Placement="Mouse" HorizontalOffset="-80" VerticalOffset="5" AllowsTransparency="True" HorizontalAlignment="Left" VerticalAlignment="Top">
                 <Canvas Width = "230" Height = "150" Margin = "5" HorizontalAlignment="Left" Background="#FF23211F">
                     <Label Content="Window Level" Height="28" Width="110" FontSize="14"  HorizontalAlignment="Right" VerticalAlignment="Top" Margin="5,10,10,10" Background="{x:Null}" Canvas.Left="10" Canvas.Top="10" Foreground="White" />
@@ -546,14 +693,42 @@
             </Popup>
             <Popup Name="Presetpopup" Placement="Mouse" HorizontalOffset="-40" VerticalOffset="3" AllowsTransparency="True" HorizontalAlignment="Left" VerticalAlignment="Top">
                 <Canvas Width = "60" Height = "160" Margin = "5" VerticalAlignment="Top" Background="#FF06162C">
-                    <Button x:Name="Bone" Content="34" Height="34" Width="34" Click="BoneButton_Click" Style="{DynamicResource Bone}" BorderBrush="#FFFBFBFB" Foreground="White" Canvas.Top="1"  Margin="0,1,0,10"/>
-                    <Button x:Name="Lung" Content="34" Height="34" Width="34" Click="LungButton_Click" Style="{DynamicResource Lung}" BorderBrush="#FFFBFBFB" Foreground="White" Canvas.Top="34"  Margin="0,10,0,10"/>
+                    <Button x:Name="Bone"  Height="34" Width="34" Click="BoneButton_Click" Style="{DynamicResource Bone}" BorderBrush="#FFFBFBFB" Foreground="White" Canvas.Top="1"  Margin="0,1,0,10"/>
+                    <Button x:Name="Lung"  Height="34" Width="34" Click="LungButton_Click" Style="{DynamicResource Lung}" BorderBrush="#FFFBFBFB" Foreground="White" Canvas.Top="34"  Margin="0,10,0,10"/>
                     <Button x:Name="Spine" Content="34" Height="34" Width="34" Click="SpineButton_Click" Style="{DynamicResource Skull}" BorderBrush="#FFFBFBFB" Foreground="White" Canvas.Top="72"  Margin="0,10,0,10"/>
                     <Button x:Name="Abdomen" Content="34" Height="34" Width="34" Click="AbdomenButton_Click" Style="{DynamicResource Windowing}" BorderBrush="#FFFBFBFB" Foreground="White" Canvas.Top="110"  Margin="0,10,0,10"/>
                 </Canvas>
             </Popup>
+            <Popup Name="LayoutPopup" Placement="Mouse" HorizontalOffset="-60" VerticalOffset="10" AllowsTransparency="True" HorizontalAlignment="Left" VerticalAlignment="Top">
+                <Canvas Width = "106" Height = "120" Margin = "5" HorizontalAlignment="Left" Background="#FF06162C">
+                    <Button x:Name="layout1" Content="1x1" Height="34" Width="34" Click="layout11_Click"  BorderBrush="#FFF17116" Canvas.Left="1"  Margin="0,1,0,10" Background="#FF191919"  Foreground="White"/>
+                    <Button x:Name="layout2" Content="1x2" Height="34" Width="34" Click="layout12_Click"  BorderBrush="#FFF17116" Canvas.Left="36"  Margin="0,1,0,10" Background="#FF191919" Foreground="White"/>
+                    <Button x:Name="layout3" Content="1x3" Height="34" Width="34" Click="layout13_Click"  BorderBrush="#FFF17116" Canvas.Left="71"  Margin="0,1,0,10" Background="#FF191919" Foreground="White"/>
+                    <Button x:Name="layout4" Content="2x1" Height="34" Width="34" Click="layout21_Click"  BorderBrush="#FFF17116" Canvas.Left="1"  Margin="0,40,0,10" Background="#FF191919" Foreground="White"/>
+                    <Button x:Name="layout5" Content="2x2" Height="34" Width="34" Click="layout22_Click"  BorderBrush="#FFF17116" Canvas.Left="36"  Margin="0,40,0,10" Background="#FF191919" Foreground="White"/>
+                    <Button x:Name="layout6" Content="2x3" Height="34" Width="34" Click="layout23_Click"  BorderBrush="#FFF17116" Canvas.Left="71"  Margin="0,40,0,10" Background="#FF191919" Foreground="White"/>
+                    <Button x:Name="layout7" Content="3x1" Height="34" Width="34" Click="layout31_Click"  BorderBrush="#FFF17116" Canvas.Left="1"  Margin="0,80,0,10" Background="#FF191919" Foreground="White"/>
+                    <Button x:Name="layout8" Content="3x2" Height="34" Width="34" Click="layout32_Click"  BorderBrush="#FFF17116" Canvas.Left="36"  Margin="0,80,0,10" Background="#FF191919" Foreground="White"/>
+                    <Button x:Name="layout9" Content="3x3" Height="34" Width="34" Click="layout33_Click"  BorderBrush="#FFF17116" Canvas.Left="71"  Margin="0,80,0,10" Background="#FF191919" Foreground="White"/>
+                </Canvas>
+            </Popup>
             <Button x:Name="Play_but" Content="" Height="34" Width="34" FontSize="18"  Click="Play_but_Click" Style="{DynamicResource Play}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="Collapsed"/>
             <Button x:Name="Stop_but" Content="" HorizontalAlignment="Stretch" Height="34"  VerticalAlignment="Stretch" Width="34" FontSize="18" Click="Stop_but_Click" Style="{DynamicResource StopButIcon}" Margin="0,0,0,1" Visibility="Collapsed" />
+            <Popup Name="Cinipopup" Placement="Mouse"  HorizontalOffset="-80" VerticalOffset="10" AllowsTransparency="True">
+                <Canvas Width = "300" Height = "60" Margin = "5"  Background="#FF06162C">
+                    <CheckBox x:Name="ChkLoop"  Height="34" Width="34"  BorderBrush="#FFFBFBFB" Foreground="White" Canvas.Top="14" Canvas.Left="10"  Margin="0,10,0,10"  IsChecked="True" Checked="ChkLoop_Checked" Unchecked="ChkLoop_Unchecked"/>
+                    <Button x:Name="SkipPreview"  Height="34" Width="34" Click="SkipPreButton_Click" Style="{DynamicResource SkipPrev}" BorderBrush="#FFFBFBFB" Foreground="White" Canvas.Top="10" Canvas.Left="30" Margin="0,10,0,10"/>
+                    <Slider Name="ciniFrameRateSlider" Width="100" Height="20" Background="DarkSlateGray" Maximum="500" Minimum="100" ValueChanged="CiniLoopFraneRate_ValueChanged"  Canvas.Top="14" Canvas.Left="80" Margin="0,10,0,10"></Slider>
+                    <Button x:Name="SkipNext"  Height="34" Width="34" Click="SkipNextButton_Click" Style="{DynamicResource SkipNext}" BorderBrush="#FFFBFBFB" Foreground="White" Canvas.Top="10" Canvas.Left="190" Margin="0,10,0,10"/>
+                   
+                
+                </Canvas>
+            </Popup>
         </StackPanel>
+        <Button x:Name="btnclose" Height="30" Width="30" FontFamily="SF UI Display"  VerticalAlignment="Top" Foreground="{x:Null}" FontWeight="Bold" BorderBrush="#FF2E303C" Cursor="Hand" Style="{DynamicResource closestyle}" HorizontalAlignment="Right" Click="btnclose_Click" Grid.Column="2">
+            <Button.ToolTip>
+                <ToolTip HasDropShadow="True" Content="Close Search Form...!"/>
+            </Button.ToolTip>
+        </Button>
     </Grid>
 </Window>

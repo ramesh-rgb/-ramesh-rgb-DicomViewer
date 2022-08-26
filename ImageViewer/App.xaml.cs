@@ -12,6 +12,22 @@ namespace ImageViewer
     /// App.xaml 的交互逻辑
     /// </summary>
     public partial class App : Application
-    {
+    {  
+        private void Application_StartUp(object sender, StartupEventArgs e)
+        {
+
+            if(e.Args.Length>0)
+            {
+                MainWindow main = new MainWindow(e.Args[0]);
+                main.Show();
+            }
+            else
+            {
+                MainWindow main = new MainWindow();
+                main.Show();
+            }
+        }
     }
 }
+
+

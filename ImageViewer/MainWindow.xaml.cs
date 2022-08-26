@@ -25,6 +25,8 @@ using System.Windows.Forms;
 using Dicom.Media;
 using System.Diagnostics;
 using System.Linq;
+using FellowOakDicom;
+
 namespace ImageViewer
 {
     /// <summary>
@@ -32,7 +34,7 @@ namespace ImageViewer
     /// </summary>
     public partial class MainWindow : Window
     {
-        DicomDecoder dd;
+        DicomDecoderold dd;
         List<byte> pixels8;
         List<ushort> pixels16;
         List<ushort> pixels12;
@@ -54,11 +56,14 @@ namespace ImageViewer
         bool flipHztl;
         public System.ComponentModel.BackgroundWorker backgroundWorker1;
         public LogWriter logWriter;
-
+        DicomDecoder decoder;
+        DicomTagg tag;
+        public string dicomFilename;
         public MainWindow()
         {
             InitializeComponent();
-            dd = new DicomDecoder();
+            
+            dd = new DicomDecoderold();
             pixels8 = new List<byte>();
             pixels16 = new List<ushort>();
             pixels12 = new List<ushort>();
@@ -74,8 +79,14 @@ namespace ImageViewer
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             // backgroundWorker1.DoWork += BackgroundWorker1_DoWork; ;
             logWriter = new LogWriter("Log Created");
+            decoder = new DicomDecoder();         
+           // logWriter.LogWrite("logggggggg"+dicomFilename);
         }
-
+        public MainWindow(string p):this()
+        {
+           // InitializeComponent();
+            this.dicomFilename = p;
+        }
         //private void BackgroundWorker1_DoWork(object sender, System.ComponentModel.DoWorkEventArgs e)
         //{
         //    var seriesrecord = sender as DicomDataset;
@@ -122,7 +133,13 @@ namespace ImageViewer
         }
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-          
+            if (dicomFilename != null)
+            {
+                logWriter.LogWrite("DicomFile ************" + dicomFilename);
+                // Dicomfileview(dicomFilename);
+                DicomDirview(dicomFilename);
+            }
+            
         }
         private void Image1_MouseDown(object sender, MouseButtonEventArgs e)
         {
@@ -159,23 +176,26 @@ namespace ImageViewer
             string imagetag = (string)pb.Tag;
             string[] authorsList = imagetag.Split('-');
             int seriesCount = int.Parse(authorsList[0]);
-           // seriesCount--;
-            int imageNo=int.Parse(authorsList[1]);
+            
+            int imageNo = int.Parse(authorsList[1]);
             imageNo--;
-            SeriesImagePanel seriesImagePanel = new SeriesImagePanel();
 
-            seriesImagePanel= seriesImagePanelslist[seriesCount];
-          
-            if(seriesImagePanel != null)
+
+            SeriesImagePanel seriesImagePanel = seriesImagePanelslist[seriesCount];
+
+            if (seriesImagePanel != null)
             {
-                seriesImagePanel.Height = 1070;
                 seriesImagePanel.Width = 1520;
+                seriesImagePanel.Height = 1070;
+                seriesImagePanel.Imageborder.Width = 1520;
+                seriesImagePanel.Imageborder.Height = 1070;
                 seriesImagePanel.Indexr = imageNo;
                 seriesImagePanel.RotateTransforms += 0;
+                seriesImagePanel.Zoom = 1;
                 seriesImagePanel.Refresh();
             }
-            //   SS.Zoom = 1;
-            MainDicomPanel.Children.Clear();          
+          
+            MainDicomPanel.Children.Clear();
             MainDicomPanel.Children.Add(seriesImagePanel);
             selectedImageControl = null;
             selectedImageControl = seriesImagePanel;
@@ -198,75 +218,64 @@ namespace ImageViewer
         }
         private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-           
-        }
 
+        }
         private void layout1_Click(object sender, RoutedEventArgs e)
         {
             if (seriesImagePanelslist.Count > 0)
             {
                 layout = 1;
-                SeriesImagePanel seriesImagePanel = seriesImagePanelslist[0];
-                seriesImagePanel.Height = 960;
-                seriesImagePanel.Width = 1600;
-                // SS.zoom(2.0);
+                seriesImagePanelslist[0].Height = 1070;
+                seriesImagePanelslist[0].Width = 1520;
+                seriesImagePanelslist[0].Imageborder.Width = 1520;
+                seriesImagePanelslist[0].Imageborder.Height = 1070;
+                seriesImagePanelslist[0].Zoom = 0.5;
+                seriesImagePanelslist[0].Refresh();
                 MainDicomPanel.Children.Clear();
-                MainDicomPanel.Children.Add(seriesImagePanel);
+                MainDicomPanel.Children.Add(seriesImagePanelslist[0]);
             }
         }
-
-
         private void layout12_Click_1(object sender, RoutedEventArgs e)
         {
-            if (seriesImagePanelslist.Count > 0 && seriesImagePanelslist.Count != 2)
-            {
-                layout = 2;
-                SeriesImagePanel seriesImagePanel = seriesImagePanelslist[0];
-                MainDicomPanel.Children.Clear();
-                seriesImagePanel.Height = 960;
-                seriesImagePanel.Width = 1600;
-                MainDicomPanel.Children.Add(seriesImagePanel);
-            }
-            else if (seriesImagePanelslist.Count == 2)
-            {
-                SeriesImagePanel seriesImagePanel = seriesImagePanelslist[0];
-                MainDicomPanel.Children.Clear();
-                seriesImagePanel.Height = 960;
-                seriesImagePanel.Width = 800;
-                MainDicomPanel.Children.Add(seriesImagePanel);
-                SeriesImagePanel seriesImagePanelOne = seriesImagePanelslist[1];
-                seriesImagePanelOne.Height = 960;
-                seriesImagePanelOne.Width = 800;
-                MainDicomPanel.Children.Add(seriesImagePanelOne);
-            }
+
         }
 
         private void layout13_Click(object sender, RoutedEventArgs e)
         {
-            if (seriesImagePanelslist.Count > 0)
+            if (seriesImagePanelslist.Count>=3)
             {
                 layout = 3;
-                SeriesImagePanel seriesImagePanel = seriesImagePanelslist[0];
-                seriesImagePanel.Height = 960;
-                seriesImagePanel.Width = 533;
+
+                seriesImagePanelslist[0].Height = 1070;
+                seriesImagePanelslist[0].Width = 522;
+                seriesImagePanelslist[0].Imageborder.Width = 522;
+                seriesImagePanelslist[0].Imageborder.Height = 1070;
+                seriesImagePanelslist[0].Zoom = 0.5;
+                seriesImagePanelslist[0].Refresh();
                 MainDicomPanel.Children.Clear();
-                MainDicomPanel.Children.Add(seriesImagePanel);
+                MainDicomPanel.Children.Add(seriesImagePanelslist[0]);
                 // SS.zoom(0.5);
-                if (seriesImagePanelslist.Count == 1)
-                {
-                    SeriesImagePanel seriesImagePanel1 = seriesImagePanelslist[1];
-                    seriesImagePanel1.Height = 960;
-                    seriesImagePanel1.Width = 533;
-                    MainDicomPanel.Children.Add(seriesImagePanel1);
-                }
-                if (seriesImagePanelslist.Count == 2)
-                {
-                    // SS1.zoom(0.5);
-                    SeriesImagePanel seriesImagePanel2 = seriesImagePanelslist[2];
-                    seriesImagePanel2.Height = 960;
-                    seriesImagePanel2.Width = 533;
-                    MainDicomPanel.Children.Add(seriesImagePanel2);
-                }
+
+                SeriesImagePanel seriesImagePanel1 = seriesImagePanelslist[1];
+                seriesImagePanel1.Height = 1070;
+                seriesImagePanel1.Width = 522;
+                seriesImagePanel1.BorderWidth = 522;
+                seriesImagePanel1.BorderHeight = 1070;
+                seriesImagePanel1.Zoom = 0.5;
+                seriesImagePanel1.Refresh();
+                MainDicomPanel.Children.Add(seriesImagePanel1);
+
+
+                // SS1.zoom(0.5);
+                SeriesImagePanel seriesImagePanel2 = seriesImagePanelslist[2];
+                seriesImagePanel2.Height = 1070;
+                seriesImagePanel2.Width = 522;
+                seriesImagePanel2.BorderWidth = 522;
+                seriesImagePanel2.BorderHeight = 1070;
+                seriesImagePanel2.Zoom = 0.5;
+                seriesImagePanel2.Refresh();
+                MainDicomPanel.Children.Add(seriesImagePanel2);
+
                 //  SS2.zoom(0.5);
                 //    SS.scaleTransform.CenterX = SS.DicomInstance.ActualWidth / 2.0;
                 //    SS.scaleTransform.CenterY = SS.DicomInstance.ActualHeight / 2.0;
@@ -332,8 +341,6 @@ namespace ImageViewer
             {
                 Presetpopup.IsOpen = true;
             }
-
-
             if (selectedImageControl.linetoolenable)
                 selectedImageControl.linetoolenable = false;
             if (selectedImageControl.circletoolenable)
@@ -342,7 +349,7 @@ namespace ImageViewer
             {
                 selectedImageControl.Recttoolenable = false;
             }
-            if(selectedImageControl.windowingtoolenable)
+            if (selectedImageControl.windowingtoolenable)
             {
                 selectedImageControl.windowingtoolenable = false;
             }
@@ -435,12 +442,22 @@ namespace ImageViewer
                 selectedImageControl.linetoolenable = false;
             if (selectedImageControl.circletoolenable)
                 selectedImageControl.circletoolenable = false;
-            if (selectedImageControl.Recttoolenable == true)
+
+            if (selectedImageControl.Recttoolenable)
             {
                 selectedImageControl.Recttoolenable = false;
+                var button = sender as System.Windows.Controls.Button;
+                Border brd = (Border)button.Template.FindName("_BorderRect", button);
+                brd.BorderBrush = null;
+                // brd.BorderBrush = new SolidColorBrush((Color)System.Windows.Media.ColorConverter.ConvertFromString("#7B7A7C"));
             }
             else
             {
+                var button = sender as System.Windows.Controls.Button;
+                Border brd = (Border)button.Template.FindName("_BorderRect", button);
+                brd.BorderThickness = new Thickness(2);
+                brd.BorderBrush = new SolidColorBrush((Color)System.Windows.Media.ColorConverter.ConvertFromString("#FF5733"));
+
                 selectedImageControl.Recttoolenable = true;
             }
         }
@@ -448,33 +465,60 @@ namespace ImageViewer
         private void Line_Click(object sender, RoutedEventArgs e)
         {
             if (selectedImageControl.Recttoolenable)
-                selectedImageControl.Recttoolenable = false;
-
-            if (selectedImageControl.circletoolenable)
-                selectedImageControl.circletoolenable = false;
-
-            if (selectedImageControl.linetoolenable == true)
-                selectedImageControl.linetoolenable = false;
-            else
             {
-                selectedImageControl.linetoolenable = true;
+
+                selectedImageControl.Recttoolenable = false;
             }
 
-        }
+            if (selectedImageControl.circletoolenable)
+            {
 
+
+                selectedImageControl.circletoolenable = false;
+            }
+
+            if (selectedImageControl.linetoolenable)
+            {
+                selectedImageControl.linetoolenable = false;
+                //var button = sender as System.Windows.Controls.Button;
+                //Border brd = (Border)button.Template.FindName("_BorderLine", button);
+                //brd.BorderBrush = null;
+                // brd.BorderBrush = new SolidColorBrush((Color)System.Windows.Media.ColorConverter.ConvertFromString("#7B7A7C"));
+
+            }
+            else
+            {
+                //var button = sender as System.Windows.Controls.Button;
+                //Border brd = (Border)button.Template.FindName("_BorderLine", button);
+                //brd.BorderThickness = new Thickness(2);
+                //brd.BorderBrush = new SolidColorBrush((Color)System.Windows.Media.ColorConverter.ConvertFromString("#FF5733"));
+
+                selectedImageControl.linetoolenable = true;
+            }
+        }
 
         private void ElipseButton_Click(object sender, RoutedEventArgs e)
         {
             if (selectedImageControl.Recttoolenable)
                 selectedImageControl.Recttoolenable = false;
-
             if (selectedImageControl.linetoolenable)
                 selectedImageControl.linetoolenable = false;
-
-            if (selectedImageControl.circletoolenable == true)
+            if (selectedImageControl.circletoolenable)
+            {
                 selectedImageControl.circletoolenable = false;
+                var button = sender as System.Windows.Controls.Button;
+                Border brd = (Border)button.Template.FindName("_Border", button);
+                brd.BorderBrush = null;
+                // brd.BorderBrush = new SolidColorBrush((Color)System.Windows.Media.ColorConverter.ConvertFromString("#7B7A7C"));
+
+            }
             else
             {
+                var button = sender as System.Windows.Controls.Button;
+                Border brd = (Border)button.Template.FindName("_Border", button);
+                brd.BorderThickness = new Thickness(2);
+                brd.BorderBrush = new SolidColorBrush((Color)System.Windows.Media.ColorConverter.ConvertFromString("#FF5733"));
+
                 selectedImageControl.circletoolenable = true;
             }
         }
@@ -483,13 +527,10 @@ namespace ImageViewer
         {
             if (selectedImageControl.Recttoolenable)
                 selectedImageControl.Recttoolenable = false;
-
             if (selectedImageControl.linetoolenable)
                 selectedImageControl.linetoolenable = false;
-
             if (selectedImageControl.circletoolenable)
                 selectedImageControl.circletoolenable = false;
-
             selectedImageControl.Selectiontoolenable = true;
         }
 
@@ -497,14 +538,13 @@ namespace ImageViewer
         {
             try
             {
-                var files=System.IO.Directory.GetFiles(dicomfolder);
+                var files = System.IO.Directory.GetFiles(dicomfolder);
                 DicomImage dicomimage = new DicomImage(files[0], 0);
                 return dicomimage;
             }
             catch (Exception)
             {
                 return null;
-
             }
             // DicomImage dicomimage = new DicomImage(dicomFile.Dataset, 0);
 
@@ -513,27 +553,22 @@ namespace ImageViewer
         {
             try
             {
-            
                 DicomImage dicomimage = new DicomImage(fPath, 0);
                 return dicomimage;
             }
             catch (Exception)
             {
                 return null;
-
             }
             // DicomImage dicomimage = new DicomImage(dicomFile.Dataset, 0);
 
         }
-
-   
-
         [Obsolete]
         private void OpenFolder_Click(object sender, RoutedEventArgs e)
         {
             MainDicomPanel.Children.Clear();
             seriesImagePanelslist.Clear();
-           
+
             Imagethumbnailpanel.Children.Clear();
             logWriter.LogWrite("OpenFolder CLicked");
             try
@@ -545,10 +580,10 @@ namespace ImageViewer
                     {
                         DirectoryInfo startDir = new DirectoryInfo(fbd.SelectedPath);
                         RecurseFileStructure recurseFileStructure = new RecurseFileStructure();
-                             // var fo=startDir.EnumerateFiles(".dcm",SearchOption.AllDirectories);
+                        // var fo=startDir.EnumerateFiles(".dcm",SearchOption.AllDirectories);
                         List<FileInfo> files = recurseFileStructure.TraverseDirectory(startDir);
                         Seriessegregation seriessegregation = new Seriessegregation();
-                       seriesImagePanelslist=seriessegregation.GetseriesImagePanels(files);
+                        seriesImagePanelslist = seriessegregation.GetseriesImagePanels(files);
                         //  string[] files = System.IO.Directory.GetDirectories(fbd.SelectedPath);
                         if (files.Count > 0)
                         {
@@ -558,6 +593,7 @@ namespace ImageViewer
                             //  DicomImage dicomImageobj = GetDicomImage(files.ch);
                             if (dicomFile != null)
                             {
+                                decoder.DicomFileName = files.ElementAt(0).FullName;
                                 if (dicomFile.Dataset.Contains(DicomTag.PatientName))
                                     this.Patientnamelbl.Content = dicomFile.Dataset.GetSingleValueOrDefault(DicomTag.PatientName, string.Empty);
 
@@ -566,12 +602,10 @@ namespace ImageViewer
                                     this.StudyDescriptionlbl.Content = dicomFile.Dataset.GetSingleValueOrDefault(DicomTag.StudyDescription, string.Empty);
 
                                 logWriter.LogWrite("StudyDescription :" + this.StudyDescriptionlbl.Content);
-
                                 if (dicomFile.Dataset.Contains(DicomTag.StudyDate))
                                     this.datelbl.Content = dicomFile.Dataset.GetSingleValueOrDefault(DicomTag.StudyDate, string.Empty);
 
                                 logWriter.LogWrite("StudyDate :" + this.datelbl.Content);
-
                             }
                             totalserieslbl.Content = seriesImagePanelslist.Count + " series";
                             for (int i = 0; i < seriesImagePanelslist.Count; i++)
@@ -588,7 +622,7 @@ namespace ImageViewer
                                 if (seriesImagePanelslist[i].DicomList.Count > 0)
                                 {
                                     int seriesNum = int.Parse(seriesImagePanelslist[i].Name);
-                                    //     seriesImagePanel.AddImageList(filesobj);
+                                    //   seriesImagePanel.AddImageList(filesobj);
                                     //   seriesImagePanelslist.Add(seriesImagePanel);
                                     WrapPanel stackPanel = new WrapPanel();
                                     stackPanel.Margin = new Thickness(0, 10, 0, 20);
@@ -625,9 +659,11 @@ namespace ImageViewer
 
                                     if (seriesImagePanelslist[i].DicomList.Count > 3)
                                     {
-                                        int middle = seriesImagePanelslist[i].DicomList.Count / 2;
+                                        int middle = seriesImagePanelslist[i].DicomList.Count/2;
                                         //  stackPanel = new WrapPanel();
                                         stackPanel.Orientation = System.Windows.Controls.Orientation.Horizontal;
+                                  
+                                        
                                         stackPanel.Children.Add(GetImage(seriesImagePanelslist[i].DicomList.First(), i, 1));
                                         System.Windows.Shapes.Rectangle recs = rectanglepanel.Children[0] as System.Windows.Shapes.Rectangle;
                                         recs.Fill = new SolidColorBrush(Colors.DarkBlue);
@@ -692,9 +728,6 @@ namespace ImageViewer
                                             {
                                                 seriesdes.Content = dicomImage.Dataset.Get<string>(DicomTag.SeriesDescription).ToString();
                                             }
-
-
-
                                         }
                                     }
 
@@ -785,12 +818,11 @@ namespace ImageViewer
                     }
                 }
             }
-
             catch (Exception ex)
             {
                 Debug.WriteLine(ex.Message);
                 logWriter.LogWrite("Exceptio On OpenFolder_Click:" + ex.Message);
-            }         
+            }
         }
 
         public Border GetBorder(DicomImage dicomimage, SeriesImagePanel seriesImagePanel)
@@ -808,30 +840,22 @@ namespace ImageViewer
             image1.Tag = seriesImagePanel;
             try
             {
-               
-                  
-                    if (dicomimage != null)
-                    {
-                        //  image1.Tag = dicomimage;
-                        Bitmap bmp = new Bitmap(dicomimage.RenderImage(0).As<Bitmap>());
-                        image1.Source = BitmapToImageSource(bmp);
-                        border.Child = image1;
-                    }
-                    return border;
-  
-
+                if (dicomimage != null)
+                {
+                    //  image1.Tag = dicomimage;
+                    Bitmap bmp = new Bitmap(dicomimage.RenderImage(0).As<Bitmap>());
+                    image1.Source = BitmapToImageSource(bmp);
+                    border.Child = image1;
+                }
+               return border;
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-
             }
-
             return border;
-
-
         }
-        public Border GetImage(string filename,int seriescount,int imageindex)
+        public Border GetImage(string filename, int seriescount, int imageindex)
         {
             Border border = new Border();
             border.Width = 80;
@@ -844,7 +868,7 @@ namespace ImageViewer
             image1.MouseDown += Image1_MouseDown;
             image1.Stretch = Stretch.Uniform;
             int indexReduced = imageindex--;
-            image1.Tag = seriescount+"-"+ indexReduced;
+            image1.Tag = seriescount + "-" + indexReduced;
             try
             {
                 if (filename.EndsWith("dcm"))
@@ -901,21 +925,230 @@ namespace ImageViewer
         }
         private System.Windows.Shapes.Rectangle DrawRectangle()
         {
-        //    string values1 = dicomDataSet.Get<string>(DicomTag.ReferencedFileID);
+            //    string values1 = dicomDataSet.Get<string>(DicomTag.ReferencedFileID);
             System.Windows.Shapes.Rectangle exampleRectangle = new System.Windows.Shapes.Rectangle();
             exampleRectangle.Width = 10;
             exampleRectangle.Height = 10;
-        //    exampleRectangle.Tag = values1;    
+            //    exampleRectangle.Tag = values1;    
             // Create a SolidColorBrush and use it to
             // paint the rectangle.
             //   exampleRectangle.Stroke = System.Windows.Media.Brushes.Black;
             exampleRectangle.Stroke = (SolidColorBrush)new BrushConverter().ConvertFrom("#FF292525");
             exampleRectangle.StrokeThickness = 1;
-            SolidColorBrush myBrush =(SolidColorBrush)new BrushConverter().ConvertFrom("#a6a6a6");
-           // SolidColorBrush myBrush = new SolidColorBrush(Colors.AntiqueWhite);
+            SolidColorBrush myBrush = (SolidColorBrush)new BrushConverter().ConvertFrom("#a6a6a6");
+            // SolidColorBrush myBrush = new SolidColorBrush(Colors.AntiqueWhite);
             exampleRectangle.Fill = myBrush;
             return exampleRectangle;
         }
+
+        public void DicomDirview(string fileName)
+        {
+
+                filename = fileName;
+                var dicomDirectory = DicomDirectory.Open(fileName);
+
+                var dicomDirectoryHelper = new DicomDirectoryHelper(LogToDebugConsole);
+
+                dicomDirectoryHelper.ShowDicomDirectoryMetaInformation(dicomDirectory);
+          
+            foreach (var patientRecord in dicomDirectory.RootDirectoryRecordCollection)
+                {
+                    this.Patientnamelbl.Content = patientRecord.Get<string>(DicomTag.PatientName).ToString();
+                    foreach (var studyRecord in patientRecord.LowerLevelDirectoryRecordCollection)
+                    {
+                        this.StudyDescriptionlbl.Content = "Series Description";
+                        this.datelbl.Content = studyRecord.Get<string>(DicomTag.StudyDate).ToString();
+                        int seriescount = 0;
+                        foreach (var seriesRecord in studyRecord.LowerLevelDirectoryRecordCollection)
+                        {                                              
+                            decoder.DicomFileName = dicomDirectoryHelper.GetFilePath(seriesRecord.LowerLevelDirectoryRecordCollection.First(), filename);
+                            seriescount++;
+                            totalserieslbl.Content = "series" + seriescount;
+                            SeriesImagePanel seriesImagePanel = new SeriesImagePanel();
+                            seriesImagePanel.isDicomDirFolderPath = true;
+                            seriesImagePanel.MouseDown += mousedownclick;
+                            seriesImagePanel.SeriesRecordPathFileName = filename;
+                            seriesImagePanel.AddSeriesRecord(seriesRecord);
+                            seriesImagePanelslist.Add(seriesImagePanel);
+                            var imagecnt = seriesRecord.LowerLevelDirectoryRecordCollection.Count();
+                            WrapPanel wrapPanel = new WrapPanel();
+                            wrapPanel.Margin = new Thickness(0, 10, 0, 20);
+                            System.Windows.Controls.Label seriesdes = new System.Windows.Controls.Label();
+                            seriesdes.HorizontalAlignment = System.Windows.HorizontalAlignment.Center;
+                            seriesdes.Foreground = System.Windows.Media.Brushes.DeepSkyBlue;
+                            seriesdes.FontFamily = new System.Windows.Media.FontFamily("SF UI Display");
+                            seriesdes.FontSize = 12;
+                            seriesdes.Margin = new System.Windows.Thickness(0, 0, 0, 0);
+                            DicomDataset dicomDataSet = seriesRecord as DicomDataset;
+                            seriesdes.Content = "Series Number:" + seriescount;
+                            seriesdes.HorizontalAlignment = System.Windows.HorizontalAlignment.Left;
+                            wrapPanel.Children.Add(seriesdes);
+                            System.Windows.Controls.Label instancecount = new System.Windows.Controls.Label();
+                            instancecount.Margin = new System.Windows.Thickness(86, 1, 10, 0);
+                            instancecount.HorizontalAlignment = System.Windows.HorizontalAlignment.Center;
+                            instancecount.Foreground = System.Windows.Media.Brushes.DeepSkyBlue;
+                            instancecount.FontFamily = new System.Windows.Media.FontFamily("SF UI Display");
+                            instancecount.FontSize = 12;
+                            instancecount.Content = imagecnt + "Imgs";
+                            instancecount.HorizontalAlignment = System.Windows.HorizontalAlignment.Right;
+                            wrapPanel.Children.Add(instancecount);
+                            wrapPanel.Tag = seriescount;
+                            WrapPanel rectanglepanel = new WrapPanel();
+                            rectanglepanel.Orientation = System.Windows.Controls.Orientation.Horizontal;
+                            rectanglepanel.Margin = new Thickness(5, 0, 1, 5);
+                            rectanglepanel.Width = 280;
+                            rectanglepanel.Height = Double.NaN;
+                            rectanglepanel.Tag = seriescount;
+                            List<Border> borderList = new List<Border>();
+                            foreach (var item in seriesRecord.LowerLevelDirectoryRecordCollection)
+                            {
+                                rectanglepanel.Orientation = System.Windows.Controls.Orientation.Horizontal;
+                                rectanglepanel.Margin = new Thickness(5, 0, 1, 5);
+                                rectanglepanel.Width = 280;
+                                rectanglepanel.Height = Double.NaN;
+                                rectanglepanel.Children.Add(DrawRectangle());
+                            }
+
+                            wrapPanel.Children.Add(rectanglepanel);
+                        //for (int i = 0; i < imagecnt; i++)
+                        //{
+                        //    rectanglepanel.Orientation = System.Windows.Controls.Orientation.Horizontal;
+                        //    rectanglepanel.Margin = new Thickness(5, 0, 1, 5);
+                        //    rectanglepanel.Width = 280;
+                        //    rectanglepanel.Height = Double.NaN;
+                        //    rectanglepanel.Children.Add(DrawRectangle());
+                        //}
+
+                        int seriesindex = 0;
+                        seriesindex = seriescount;
+                        seriesindex--;
+                        if (imagecnt > 3)
+                            {
+                                int middle = imagecnt / 2;
+                                wrapPanel.Orientation = System.Windows.Controls.Orientation.Horizontal;
+                                wrapPanel.Children.Add(GetImage(dicomDirectoryHelper.GetFilePath(seriesRecord.LowerLevelDirectoryRecordCollection.First(), filename), seriesindex, 1));
+                                System.Windows.Shapes.Rectangle recs = rectanglepanel.Children[0] as System.Windows.Shapes.Rectangle;
+                                recs.Fill = new SolidColorBrush(Colors.DarkBlue);
+                                wrapPanel.Children.Add(GetImage(dicomDirectoryHelper.GetFilePath(seriesRecord.LowerLevelDirectoryRecordCollection.ElementAt(middle), filename), seriesindex, middle));
+                                System.Windows.Shapes.Rectangle recs2 = rectanglepanel.Children[middle] as System.Windows.Shapes.Rectangle;
+                                recs2.Fill = new SolidColorBrush(Colors.DarkBlue);
+                                wrapPanel.Children.Add(GetImage(dicomDirectoryHelper.GetFilePath(seriesRecord.LowerLevelDirectoryRecordCollection.Last(), filename), seriesindex, imagecnt));
+                                int reducedcount = imagecnt;
+                                reducedcount--;
+                                System.Windows.Shapes.Rectangle recs3 = rectanglepanel.Children[reducedcount] as System.Windows.Shapes.Rectangle;
+                                recs3.Fill = new SolidColorBrush(Colors.DarkBlue);
+                                DicomImage dicomImage = seriesImagePanel.GetDicomImage(dicomDirectoryHelper.GetFilePath(seriesRecord.LowerLevelDirectoryRecordCollection.Last(), filename));
+                                if (dicomImage != null)
+                                {
+                                    // seriesdes.Content = dicomImage.Dataset.Get<string>(DicomTag.SeriesDescription).ToString();
+                                }
+                            }
+                            else
+                            {
+                                if (imagecnt == 3)
+                                {
+                                    wrapPanel.Orientation = System.Windows.Controls.Orientation.Horizontal;
+                                    wrapPanel.Children.Add(GetImage(dicomDirectoryHelper.GetFilePath(seriesRecord.LowerLevelDirectoryRecordCollection.First(), filename), seriesindex, 1));
+                                    System.Windows.Shapes.Rectangle recs = rectanglepanel.Children[0] as System.Windows.Shapes.Rectangle;
+                                    recs.Fill = new SolidColorBrush(Colors.DarkBlue);
+                                    wrapPanel.Children.Add(GetImage(dicomDirectoryHelper.GetFilePath(seriesRecord.LowerLevelDirectoryRecordCollection.ElementAt(2), filename), seriesindex, 2));
+                                    System.Windows.Shapes.Rectangle recs2 = rectanglepanel.Children[1] as System.Windows.Shapes.Rectangle;
+                                    recs2.Fill = new SolidColorBrush(Colors.DarkBlue);
+                                    wrapPanel.Children.Add(GetImage(dicomDirectoryHelper.GetFilePath(seriesRecord.LowerLevelDirectoryRecordCollection.Last(), filename), seriesindex, imagecnt));
+                                    System.Windows.Shapes.Rectangle recs3 = rectanglepanel.Children[2] as System.Windows.Shapes.Rectangle;
+                                    recs3.Fill = new SolidColorBrush(Colors.DarkBlue);
+                                    DicomImage dicomImage = seriesImagePanel.GetDicomImage(dicomDirectoryHelper.GetFilePath(seriesRecord.LowerLevelDirectoryRecordCollection.Last(), filename));
+                                    if (dicomImage != null)
+                                    {
+                                        //seriesdes.Content = dicomImage.Dataset.Get<string>(DicomTag.SeriesDescription).ToString();
+                                    }
+                                }
+                                else if (imagecnt == 2)
+                                {
+                                    wrapPanel.Orientation = System.Windows.Controls.Orientation.Horizontal;
+                                    wrapPanel.Children.Add(GetImage(dicomDirectoryHelper.GetFilePath(seriesRecord.LowerLevelDirectoryRecordCollection.First(), filename), seriesindex, 1));
+                                    System.Windows.Shapes.Rectangle recs = rectanglepanel.Children[0] as System.Windows.Shapes.Rectangle;
+                                    recs.Fill = new SolidColorBrush(Colors.DarkBlue);
+                                    wrapPanel.Children.Add(GetImage(dicomDirectoryHelper.GetFilePath(seriesRecord.LowerLevelDirectoryRecordCollection.Last(), filename), seriesindex, 2));
+                                    DicomImage dicomImage = seriesImagePanel.GetDicomImage(dicomDirectoryHelper.GetFilePath(seriesRecord.LowerLevelDirectoryRecordCollection.Last(), filename));
+                                    if (dicomImage != null)
+                                    {
+                                        // seriesdes.Content = dicomImage.Dataset.Get<string>(DicomTag.SeriesDescription).ToString();
+                                    }
+                                }
+                                else
+                                {   // stackPanel = new StackPanel();
+                                    wrapPanel.Orientation = System.Windows.Controls.Orientation.Horizontal;
+                                    wrapPanel.Children.Add(GetImage(dicomDirectoryHelper.GetFilePath(seriesRecord.LowerLevelDirectoryRecordCollection.First(), filename), seriesindex, 1));
+                                    System.Windows.Shapes.Rectangle recs = rectanglepanel.Children[0] as System.Windows.Shapes.Rectangle;
+                                    recs.Fill = new SolidColorBrush(Colors.DarkBlue);
+                                    DicomImage dicomImage = seriesImagePanel.GetDicomImage(dicomDirectoryHelper.GetFilePath(seriesRecord.LowerLevelDirectoryRecordCollection.Last(), filename));
+                                    if (dicomImage != null)
+                                    {
+                                        //seriesdes.Content = dicomImage.Dataset.Get<string>(DicomTag.SeriesDescription).ToString();
+                                    }
+                                }
+                            }
+                            Imagethumbnailpanel.Children.Add(wrapPanel);
+                        
+                    }
+                }
+            }
+        }
+
+
+        public void Dicomfileview(string filename)
+        {
+
+            SeriesImagePanel seriesImagePanel = new SeriesImagePanel();
+            seriesImagePanel.Name = "Image";
+            seriesImagePanel.MouseDown += mousedownclick;
+            List<string> filesobj = new List<string>();
+            //  var dirss = System.IO.Directory.GetFiles();//System.IO.Directory.GetDirectories(foldername);
+            filesobj.Add(filename);
+            //  DicomImage dicomImage1= seriesImagePanel.GetDicomImage(openFileDialog.FileName);
+            //  seriesImagePanel.AddNewImage(dicomImage1);
+            seriesImagePanel.AddImageList(filesobj);
+            seriesImagePanelslist.Add(seriesImagePanel);
+            WrapPanel stackPanel = new WrapPanel();
+            stackPanel.Margin = new Thickness(0, 10, 0, 20);
+
+            WrapPanel rectanglepanel = new WrapPanel();
+            //  rectanglepanel.Margin = new Thickness(0, 0, 1, 5);
+            rectanglepanel.Orientation = System.Windows.Controls.Orientation.Horizontal;
+            rectanglepanel.Margin = new Thickness(5, 0, 1, 5);
+            rectanglepanel.Width = 280;
+            rectanglepanel.Height = Double.NaN;
+            rectanglepanel.Children.Add(DrawRectangle());
+
+            stackPanel.Children.Add(rectanglepanel);
+
+            Border border = new Border();
+            border.BorderBrush = System.Windows.Media.Brushes.WhiteSmoke;
+            border.BorderThickness = new Thickness(1);
+            border.Margin = new Thickness(0, 20, 0, 3);
+            Image image1 = new Image();
+            image1.Width = 70;
+            image1.Height = 70;
+            image1.VerticalAlignment = VerticalAlignment.Top;
+            image1.MouseDown += Image1_MouseDown;
+            image1.Tag = 0 + "-" + 1;
+            DicomImage dicomImage = seriesImagePanel.GetDicomImage(filesobj[0]);
+            if (dicomImage != null)
+            {
+                this.Patientnamelbl.Content = dicomImage.Dataset.Get<string>(DicomTag.PatientName).ToString();
+                if (dicomImage.Dataset.Contains(DicomTag.StudyDate))
+                    this.datelbl.Content = dicomImage.Dataset.Get<string>(DicomTag.StudyDate).ToString();
+                if (dicomImage.Dataset.Contains(DicomTag.StudyDescription))
+                    this.StudyDescriptionlbl.Content = dicomImage.Dataset.Get<string>(DicomTag.StudyDescription).ToString();
+                Bitmap bmp = new Bitmap(dicomImage.RenderImage(0).As<Bitmap>());
+                image1.Source = seriesImagePanel.BitmapToImageSource(bmp);
+                border.Child = image1;
+                stackPanel.Children.Add(border);
+            }
+            Imagethumbnailpanel.Children.Add(stackPanel);
+        }
+    
 
         //public void AddImagetoThumbnail(string fileName)
         //    {
@@ -931,10 +1164,14 @@ namespace ImageViewer
         //        image1.Tag = seriesImagePanel;
         //        Bitmap bmp = new Bitmap(image.RenderImage(0).As<Bitmap>());
         //        image1.Source = BitmapToImageSource(bmp);
+
         //        Imagethumbnailpanel.Children.Add(image1);
         //    }
 
         //}
+
+
+        
         private void OpenFile_Click(object sender, RoutedEventArgs e)
         {
             MainDicomPanel.Children.Clear();
@@ -953,8 +1190,8 @@ namespace ImageViewer
                 //  var dirss = System.IO.Directory.GetFiles();//System.IO.Directory.GetDirectories(foldername);
                     filesobj.Add(openFileDialog.FileName);
                 //  DicomImage dicomImage1= seriesImagePanel.GetDicomImage(openFileDialog.FileName);
-                // seriesImagePanel.AddNewImage(dicomImage1);
-                  seriesImagePanel.AddImageList(filesobj);
+                //  seriesImagePanel.AddNewImage(dicomImage1);
+                    seriesImagePanel.AddImageList(filesobj);
                     seriesImagePanelslist.Add(seriesImagePanel);
                     WrapPanel stackPanel = new WrapPanel();
                     stackPanel.Margin = new Thickness(0, 10, 0, 20);                             
@@ -969,7 +1206,7 @@ namespace ImageViewer
                 
                    stackPanel.Children.Add(rectanglepanel);
 
-                   Border border = new Border();
+                    Border border = new Border();
                     border.BorderBrush = System.Windows.Media.Brushes.WhiteSmoke;
                     border.BorderThickness = new Thickness(1);
                     border.Margin = new Thickness(0, 20, 0, 3);
@@ -979,15 +1216,19 @@ namespace ImageViewer
                     image1.VerticalAlignment = VerticalAlignment.Top;
                     image1.MouseDown += Image1_MouseDown;
                     image1.Tag = 0 + "-" + 1;
-                DicomImage dicomImage = seriesImagePanel.GetDicomImage(filesobj[0]);
-                    if (dicomImage != null)
+                    DicomImage dicomImage = seriesImagePanel.GetDicomImage(filesobj[0]);
+                    if(dicomImage != null)
                     {
+                   // Dicom Tag config
+                    decoder.DicomFileName = filesobj[
+                        
+                        0];
                     this.Patientnamelbl.Content = dicomImage.Dataset.Get<string>(DicomTag.PatientName).ToString();
                     if (dicomImage.Dataset.Contains(DicomTag.StudyDate))
                         this.datelbl.Content = dicomImage.Dataset.Get<string>(DicomTag.StudyDate).ToString();
                     if (dicomImage.Dataset.Contains(DicomTag.StudyDescription))
                          this.StudyDescriptionlbl.Content= dicomImage.Dataset.Get<string>(DicomTag.StudyDescription).ToString();
-                      Bitmap bmp = new Bitmap(dicomImage.RenderImage(0).As<Bitmap>());
+                        Bitmap bmp = new Bitmap(dicomImage.RenderImage(0).As<Bitmap>());
                         image1.Source = seriesImagePanel.BitmapToImageSource(bmp);
                         border.Child = image1;
                         stackPanel.Children.Add(border);                      
@@ -1015,17 +1256,28 @@ namespace ImageViewer
             //    SS.scaleTransform.ScaleX += SS.scaleTransform.ScaleX * 0.6;
             //    SS.scaleTransform.ScaleY = Math.Abs(SS.scaleTransform.ScaleX);           
         }
-
         private void Delete_Click(object sender, RoutedEventArgs e)
         {
             selectedImageControl.delete();
         }
-
         private void Layout_Click(object sender, RoutedEventArgs e)
         {
-
+            if (LayoutPopup.IsOpen)
+            {
+                LayoutPopup.IsOpen = false;
+                var button = sender as System.Windows.Controls.Button;
+                Border brd = (Border)button.Template.FindName("_BorderLayout", button);
+                brd.BorderBrush = null;
+            }             
+            else
+            {
+                var button = sender as System.Windows.Controls.Button;
+                Border brd = (Border)button.Template.FindName("_BorderLayout", button);
+                brd.BorderThickness = new Thickness(2);
+                brd.BorderBrush = new SolidColorBrush((Color)System.Windows.Media.ColorConverter.ConvertFromString("#FF5733"));
+                LayoutPopup.IsOpen = true;
+            }
         }
-
         private void FlipVertl_Click(object sender, RoutedEventArgs e)
         {
 
@@ -1062,8 +1314,7 @@ namespace ImageViewer
                     selectedImageControl.FlipHTransform(val);
                     flipHztl = false;
                 }           
-            }
-               
+            }               
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -1091,28 +1342,29 @@ namespace ImageViewer
                 if (openFileDialog.ShowDialog() == true)
                 {
                     filename=openFileDialog.FileName;   
-                     var dicomDirectory = DicomDirectory.Open(openFileDialog.FileName);
+                    var dicomDirectory = DicomDirectory.Open(openFileDialog.FileName);
 
                     var dicomDirectoryHelper = new DicomDirectoryHelper(LogToDebugConsole);
 
                     dicomDirectoryHelper.ShowDicomDirectoryMetaInformation(dicomDirectory);
 
                     foreach (var patientRecord in dicomDirectory.RootDirectoryRecordCollection)
-                    {
-                      
+                    {                    
                         this.Patientnamelbl.Content = patientRecord.Get<string>(DicomTag.PatientName).ToString();                       
                         foreach (var studyRecord in patientRecord.LowerLevelDirectoryRecordCollection)
                         {
                             this.StudyDescriptionlbl.Content = "Series Description";
-                            this.datelbl.Content = studyRecord.Get<string>(DicomTag.StudyDate).ToString();
-                           
+                            this.datelbl.Content = studyRecord.Get<string>(DicomTag.StudyDate).ToString();                         
                             int seriescount = 0;
                             foreach (var seriesRecord in studyRecord.LowerLevelDirectoryRecordCollection)
                             {
+                               // DicomFile dicomFile = new DicomFile(seriesRecord);
+                                //Dicom Tag Reteriving
+                                decoder.DicomFileName = dicomDirectoryHelper.GetFilePath(seriesRecord.LowerLevelDirectoryRecordCollection.First(), filename);
                                 seriescount++;
-                                totalserieslbl.Content = "series" + seriescount;
-                           
-                                SeriesImagePanel seriesImagePanel = new SeriesImagePanel();                                              
+                                totalserieslbl.Content = "series" + seriescount;                         
+                                SeriesImagePanel seriesImagePanel = new SeriesImagePanel();
+                                seriesImagePanel.isDicomDirFolderPath = true;
                                 seriesImagePanel.MouseDown += mousedownclick;
                                 seriesImagePanel.SeriesRecordPathFileName = filename;
                                 seriesImagePanel.AddSeriesRecord(seriesRecord);
@@ -1146,8 +1398,7 @@ namespace ImageViewer
                                 rectanglepanel.Width = 280;
                                 rectanglepanel.Height = Double.NaN;
                                 rectanglepanel.Tag = seriescount;
-                                List<Border> borderList = new List<Border>();
-                               
+                                List<Border> borderList = new List<Border>();                             
                                 foreach (var item in seriesRecord.LowerLevelDirectoryRecordCollection)
                                 {
                                     rectanglepanel.Orientation = System.Windows.Controls.Orientation.Horizontal;
@@ -1166,17 +1417,22 @@ namespace ImageViewer
                                 //    rectanglepanel.Height = Double.NaN;
                                 //    rectanglepanel.Children.Add(DrawRectangle());
                                 //}
+                                int seriesindex = 0;
+                                seriesindex = seriescount;
+                                seriesindex--;
+
                                 if (imagecnt>3)
                                 {
                                     int middle = imagecnt / 2;
+                                 
                                     wrapPanel.Orientation = System.Windows.Controls.Orientation.Horizontal;
-                                    wrapPanel.Children.Add(GetImage(dicomDirectoryHelper.GetFilePath(seriesRecord.LowerLevelDirectoryRecordCollection.First(), filename),seriescount,1));
+                                    wrapPanel.Children.Add(GetImage(dicomDirectoryHelper.GetFilePath(seriesRecord.LowerLevelDirectoryRecordCollection.First(), filename), seriesindex, 1));
                                     System.Windows.Shapes.Rectangle recs = rectanglepanel.Children[0] as System.Windows.Shapes.Rectangle;
                                     recs.Fill = new SolidColorBrush(Colors.DarkBlue);
-                                    wrapPanel.Children.Add(GetImage(dicomDirectoryHelper.GetFilePath(seriesRecord.LowerLevelDirectoryRecordCollection.ElementAt(middle), filename), seriescount, middle));
+                                    wrapPanel.Children.Add(GetImage(dicomDirectoryHelper.GetFilePath(seriesRecord.LowerLevelDirectoryRecordCollection.ElementAt(middle), filename), seriesindex, middle));
                                     System.Windows.Shapes.Rectangle recs2 = rectanglepanel.Children[middle] as System.Windows.Shapes.Rectangle;
                                     recs2.Fill = new SolidColorBrush(Colors.DarkBlue);
-                                    wrapPanel.Children.Add(GetImage(dicomDirectoryHelper.GetFilePath(seriesRecord.LowerLevelDirectoryRecordCollection.Last(), filename), seriescount,imagecnt));
+                                    wrapPanel.Children.Add(GetImage(dicomDirectoryHelper.GetFilePath(seriesRecord.LowerLevelDirectoryRecordCollection.Last(), filename), seriesindex, imagecnt));
                                     int reducedcount = imagecnt;
                                     reducedcount--;
                                     System.Windows.Shapes.Rectangle recs3 = rectanglepanel.Children[reducedcount] as System.Windows.Shapes.Rectangle;
@@ -1192,13 +1448,13 @@ namespace ImageViewer
                                     if (imagecnt== 3)
                                     {
                                         wrapPanel.Orientation = System.Windows.Controls.Orientation.Horizontal;
-                                        wrapPanel.Children.Add(GetImage(dicomDirectoryHelper.GetFilePath(seriesRecord.LowerLevelDirectoryRecordCollection.First(),filename),seriescount,1));
+                                        wrapPanel.Children.Add(GetImage(dicomDirectoryHelper.GetFilePath(seriesRecord.LowerLevelDirectoryRecordCollection.First(),filename), seriesindex, 1));
                                         System.Windows.Shapes.Rectangle recs = rectanglepanel.Children[0] as System.Windows.Shapes.Rectangle;
                                         recs.Fill = new SolidColorBrush(Colors.DarkBlue);
-                                        wrapPanel.Children.Add(GetImage(dicomDirectoryHelper.GetFilePath(seriesRecord.LowerLevelDirectoryRecordCollection.ElementAt(2), filename), seriescount,2));
+                                        wrapPanel.Children.Add(GetImage(dicomDirectoryHelper.GetFilePath(seriesRecord.LowerLevelDirectoryRecordCollection.ElementAt(2), filename), seriesindex, 2));
                                         System.Windows.Shapes.Rectangle recs2 = rectanglepanel.Children[1] as System.Windows.Shapes.Rectangle;
                                         recs2.Fill = new SolidColorBrush(Colors.DarkBlue);
-                                        wrapPanel.Children.Add(GetImage(dicomDirectoryHelper.GetFilePath(seriesRecord.LowerLevelDirectoryRecordCollection.Last(),filename ), seriescount,imagecnt));
+                                        wrapPanel.Children.Add(GetImage(dicomDirectoryHelper.GetFilePath(seriesRecord.LowerLevelDirectoryRecordCollection.Last(),filename ), seriesindex, imagecnt));
                                         System.Windows.Shapes.Rectangle recs3 = rectanglepanel.Children[2] as System.Windows.Shapes.Rectangle;
                                         recs3.Fill = new SolidColorBrush(Colors.DarkBlue);
                                         DicomImage dicomImage = seriesImagePanel.GetDicomImage(dicomDirectoryHelper.GetFilePath(seriesRecord.LowerLevelDirectoryRecordCollection.Last(), filename));
@@ -1210,10 +1466,10 @@ namespace ImageViewer
                                     else if (imagecnt == 2)
                                     {
                                         wrapPanel.Orientation = System.Windows.Controls.Orientation.Horizontal;                                
-                                        wrapPanel.Children.Add(GetImage(dicomDirectoryHelper.GetFilePath(seriesRecord.LowerLevelDirectoryRecordCollection.First(), filename), seriescount,1));
+                                        wrapPanel.Children.Add(GetImage(dicomDirectoryHelper.GetFilePath(seriesRecord.LowerLevelDirectoryRecordCollection.First(), filename), seriesindex, 1));
                                         System.Windows.Shapes.Rectangle recs = rectanglepanel.Children[0] as System.Windows.Shapes.Rectangle;
                                         recs.Fill = new SolidColorBrush(Colors.DarkBlue);
-                                        wrapPanel.Children.Add(GetImage(dicomDirectoryHelper.GetFilePath(seriesRecord.LowerLevelDirectoryRecordCollection.Last(), filename), seriescount,2));                                      
+                                        wrapPanel.Children.Add(GetImage(dicomDirectoryHelper.GetFilePath(seriesRecord.LowerLevelDirectoryRecordCollection.Last(), filename), seriesindex, 2));                                      
                                         DicomImage dicomImage = seriesImagePanel.GetDicomImage(dicomDirectoryHelper.GetFilePath(seriesRecord.LowerLevelDirectoryRecordCollection.Last(), filename));
                                         if (dicomImage != null)
                                         {
@@ -1223,7 +1479,7 @@ namespace ImageViewer
                                     else
                                     {   // stackPanel = new StackPanel();
                                         wrapPanel.Orientation = System.Windows.Controls.Orientation.Horizontal;
-                                        wrapPanel.Children.Add(GetImage(dicomDirectoryHelper.GetFilePath(seriesRecord.LowerLevelDirectoryRecordCollection.First(), filename), seriescount,1));
+                                        wrapPanel.Children.Add(GetImage(dicomDirectoryHelper.GetFilePath(seriesRecord.LowerLevelDirectoryRecordCollection.First(), filename), seriesindex, 1));
                                         System.Windows.Shapes.Rectangle recs = rectanglepanel.Children[0] as System.Windows.Shapes.Rectangle;
                                         recs.Fill = new SolidColorBrush(Colors.DarkBlue);
                                         DicomImage dicomImage = seriesImagePanel.GetDicomImage(dicomDirectoryHelper.GetFilePath(seriesRecord.LowerLevelDirectoryRecordCollection.Last(), filename));
@@ -1233,28 +1489,23 @@ namespace ImageViewer
                                         }
                                     }
                                 }
-                                Imagethumbnailpanel.Children.Add(wrapPanel);
-                          
+                                Imagethumbnailpanel.Children.Add(wrapPanel);                         
                             }
-
                         }
                     }
-
                 }
                 LogToDebugConsole("Dicom directory dump operation was successful");
             }
+            
+            
             catch (Exception ex)
             {
                 LogToDebugConsole($"Error occured during Dicom directory dump. Error:{ex.Message}");
             }
-
         }
-
-     
 
         private WrapPanel ShowSeriesLevelInfo(DicomDataset dataset)
         {
-
             WrapPanel stackPanel = new WrapPanel();
             stackPanel.Margin = new Thickness(0, 10, 0, 20);
             System.Windows.Controls.Label seriesdes = new System.Windows.Controls.Label();
@@ -1272,7 +1523,7 @@ namespace ImageViewer
             seriesdes1.Foreground = System.Windows.Media.Brushes.DeepSkyBlue;
             seriesdes1.FontFamily = new System.Windows.Media.FontFamily("SF UI Display");
             seriesdes1.FontSize = 12;
-       //     seriesdes1.Content = dataset.Get<string>(DicomTag.NumberOfFrames);
+       //   seriesdes1.Content = dataset.Get<string>(DicomTag.NumberOfFrames);
             seriesdes1.HorizontalAlignment = System.Windows.HorizontalAlignment.Right;
             stackPanel.Children.Add(seriesdes1);
           return stackPanel;    
@@ -1296,6 +1547,338 @@ namespace ImageViewer
         private void AbdomenButton_Click(object sender, RoutedEventArgs e)
         {
             windowingcall("10", "400");
+        }
+
+        private void DicomTagbut_Click(object sender, RoutedEventArgs e)
+        {
+            tag = new DicomTagg();
+            List<string> str = decoder.dicomInfo;
+            tag.SetString(ref str);
+            tag.TopMost = true;
+            tag.Show();
+            tag.BringToFront();
+        }
+
+        private void layout11_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void layout12_Click(object sender, RoutedEventArgs e)
+        {
+            //if (seriesImagePanelslist.Count > 0 && seriesImagePanelslist.Count != 2)
+            //{
+            //    layout = 2;
+            //    SeriesImagePanel seriesImagePanel = seriesImagePanelslist[0];
+            //    MainDicomPanel.Children.Clear();
+            //    seriesImagePanel.Height = 1070;
+            //    seriesImagePanel.Width = 1520;
+            //    MainDicomPanel.Children.Add(seriesImagePanel);
+            //}
+            layout = 2;
+            if (seriesImagePanelslist.Count >=2)
+            {              
+                SeriesImagePanel  seriesImagePanel = seriesImagePanelslist[0];
+                MainDicomPanel.Children.Clear();
+                seriesImagePanel.Height = 1070;
+                seriesImagePanel.Width = 780;
+                seriesImagePanel.BorderWidth= 780;
+                seriesImagePanel.BorderHeight = 1070;
+                //seriesImagePanel.maingrid.Height = 1070;
+                //seriesImagePanel.maingrid.Width = 780;
+                seriesImagePanel.Zoom = 1;
+               // seriesImagePanel.Indexr = imageNo;
+               // seriesImagePanel.RotateTransforms += 0;
+                seriesImagePanel.Refresh();
+                //MainDicomPanel.Children.Add(seriesImagePanel);              
+                SeriesImagePanel seriesImagePanelone = seriesImagePanelslist[1];
+                seriesImagePanelone.Height = 1070;
+                seriesImagePanelone.Width = 780;
+                seriesImagePanelone.BorderWidth = 780;
+                seriesImagePanelone.BorderHeight = 1070;
+                //    seriesImagePanelOne.maingrid.Height = 1070;
+                //  seriesImagePanelOne.maingrid.Width = 780;
+                seriesImagePanelone.Zoom = 1;
+                // seriesImagePanelOne.RotateTransforms += 0;
+                seriesImagePanelone.Refresh();
+
+                MainDicomPanel.Children.Clear();
+                
+                MainDicomPanel.Children.Add(seriesImagePanel);
+                MainDicomPanel.Children.Add(seriesImagePanelone);
+            }
+        }
+
+        private void layout21_Click(object sender, RoutedEventArgs e)
+        {
+
+            if (seriesImagePanelslist.Count >=2)
+            {
+
+                MainDicomPanel.Children.Clear();
+
+                for (int i = 0; i < seriesImagePanelslist.Count; i++)
+                {
+
+                    seriesImagePanelslist[i].Height = 530;
+                    seriesImagePanelslist[i].Width = 780;
+                    seriesImagePanelslist[i].BorderWidth = 780;
+                    seriesImagePanelslist[i].BorderHeight = 530;
+                    seriesImagePanelslist[i].Zoom = 0.5;
+                    MainDicomPanel.Children.Add(seriesImagePanelslist[i]);
+                }
+
+            }
+        }
+
+        private void layout22_Click(object sender, RoutedEventArgs e)
+        {
+            if (seriesImagePanelslist.Count >2)
+            {
+
+                MainDicomPanel.Children.Clear();
+
+                for (int i = 0; i < seriesImagePanelslist.Count; i++)
+                {
+
+                    seriesImagePanelslist[i].Height = 530;
+                    seriesImagePanelslist[i].Width = 780;
+                    seriesImagePanelslist[i].BorderWidth = 780;
+                    seriesImagePanelslist[i].BorderHeight = 530;
+                    seriesImagePanelslist[i].Zoom = 0.5;
+                    MainDicomPanel.Children.Add(seriesImagePanelslist[i]);
+                }
+            }
+        }
+
+        private void layout23_Click(object sender, RoutedEventArgs e)
+        {
+            if (seriesImagePanelslist.Count > 2)
+            {              
+                MainDicomPanel.Children.Clear();
+                for (int i=0;i<seriesImagePanelslist.Count;i++)
+                {
+                    MainDicomPanel.Children.Add(AddLayoutPanel(seriesImagePanelslist[i]));
+                }             
+            }
+        }
+        public SeriesImagePanel AddLayoutPanel(SeriesImagePanel seriesImagePanelone)
+        {            
+            seriesImagePanelone.Height = 530;
+            seriesImagePanelone.Width = 500;
+            seriesImagePanelone.BorderWidth = 530;
+            seriesImagePanelone.BorderHeight = 500;
+            seriesImagePanelone.Zoom = 0.3;     
+            return seriesImagePanelone;
+        }
+        private void layout31_Click(object sender, RoutedEventArgs e)
+        {
+            if (seriesImagePanelslist.Count > 2)
+            {
+                MainDicomPanel.Children.Clear();
+                for (int i = 0; i < seriesImagePanelslist.Count; i++)
+                {
+                    seriesImagePanelslist[i].Height = 350;
+                    seriesImagePanelslist[i].Width = 1520;
+                    seriesImagePanelslist[i].BorderWidth = 1520;
+                    seriesImagePanelslist[i].BorderHeight = 350;
+                    seriesImagePanelslist[i].Zoom = 0.5;
+                    MainDicomPanel.Children.Add(seriesImagePanelslist[i]);
+                }
+            }
+        }
+        private void layout32_Click(object sender, RoutedEventArgs e)
+        {
+            if (seriesImagePanelslist.Count > 2)
+            {
+                MainDicomPanel.Children.Clear();
+
+                for (int i = 0; i < seriesImagePanelslist.Count; i++)
+                {
+                    seriesImagePanelslist[i].Height = 530;
+                    seriesImagePanelslist[i].Width = 1520;
+                    seriesImagePanelslist[i].BorderWidth = 1520;
+                    seriesImagePanelslist[i].BorderHeight = 530;
+                    seriesImagePanelslist[i].Zoom = 0.5;
+                    MainDicomPanel.Children.Add(seriesImagePanelslist[i]);
+                }
+            }
+        }
+
+        private void layout33_Click(object sender, RoutedEventArgs e)
+        {
+            if (seriesImagePanelslist.Count > 2)
+            {
+                MainDicomPanel.Children.Clear();
+                for (int i = 0; i < seriesImagePanelslist.Count; i++)
+                {
+                    seriesImagePanelslist[i].Height = 350;
+                    seriesImagePanelslist[i].Width = 500;
+                    seriesImagePanelslist[i].BorderWidth = 500;
+                    seriesImagePanelslist[i].BorderHeight = 350;
+                    seriesImagePanelslist[i].Zoom = 0.3;
+                    MainDicomPanel.Children.Add(seriesImagePanelslist[i]);
+                }
+            }
+        }
+        int overlaycount=0;
+        private void Overlay_Click(object sender, RoutedEventArgs e)
+        {          
+            if (selectedImageControl != null)
+            {
+                if(overlaycount==1)
+                {
+                    selectedImageControl.showoverlay(true);
+                    overlaycount = 0;
+                }
+                else
+                {
+                    selectedImageControl.showoverlay(false);
+                    overlaycount = 1;
+                }                
+            }
+           // overlaycount overlay=new overlaycount   
+        }
+        private void btnclose_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
+        private void CiniLoop_Click(object sender, RoutedEventArgs e)
+        {
+              if(Cinipopup.IsOpen)
+                 Cinipopup.IsOpen = false;
+              else
+              {
+                Cinipopup.IsOpen = true;
+             //   MoveForward = true;
+                SkipNextButton_Click(SkipNext, e);
+               // selectedImageControl.OnetimeLoop();
+               // selectedImageControl.Sniploop();
+              }
+        }
+        private void LoopButton_Click(object sender, RoutedEventArgs e)
+        {      
+        }
+        public bool MoveForward=false;
+        public bool MoveBackward=false;
+        private void SkipNextButton_Click(object sender, RoutedEventArgs e)
+        {
+           if(!MoveForward)
+            {
+                selectedImageControl.Sniploop();        
+                var button = sender as System.Windows.Controls.Button;
+                Border brd = (Border)button.Template.FindName("_SkipNext", button);
+                // brd.BorderThickness = new Thickness(2);
+                // This answer is useful1
+                var uri = new Uri(@"F:\DicomViewer Development Historybackup\DicomViewer28072022\ImageViewer-master\ImageViewer\ImageViewer\Icons\pause-circle.png", UriKind.Relative);
+                //  qestion15.Source = new BitmapImage(uri);
+                BitmapImage img = new BitmapImage(uri);
+                ImageBrush image = new ImageBrush(img);
+                // brd.Background = new SolidColorBrush((Color)System.Windows.Media.ColorConverter.ConvertFromString("#FF5733"));
+                brd.Background = image;
+                // selectedImageControl.MoveForward();
+                MoveForward = true;
+            }
+            else
+            {
+                selectedImageControl.stopsniploop();
+                var button = sender as System.Windows.Controls.Button;
+                Border brd = (Border)button.Template.FindName("_SkipNext", button);
+                // brd.BorderThickness = new Thickness(2);
+                // This answer is useful1
+                var uri = new Uri(@"F:\DicomViewer Development Historybackup\DicomViewer28072022\ImageViewer-master\ImageViewer\ImageViewer\Icons\skip-next.png", UriKind.Relative);
+                //  qestion15.Source = new BitmapImage(uri);
+                BitmapImage img = new BitmapImage(uri);
+                ImageBrush image = new ImageBrush(img);
+                // brd.Background = new SolidColorBrush((Color)System.Windows.Media.ColorConverter.ConvertFromString("#FF5733"));
+                brd.Background = image;
+                MoveForward = false;
+            }
+        }
+        private void SkipPreButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (!MoveBackward)
+            {
+                selectedImageControl.Sniploop();
+                var button = sender as System.Windows.Controls.Button;
+                Border brd = (Border)button.Template.FindName("_Borderprev", button);
+                // brd.BorderThickness = new Thickness(2);
+                // This answer is useful1
+                var uri = new Uri(@"F:\DicomViewer Development Historybackup\DicomViewer28072022\ImageViewer-master\ImageViewer\ImageViewer\Icons\pause-circle.png", UriKind.Relative);
+                //  qestion15.Source = new BitmapImage(uri);
+                BitmapImage img = new BitmapImage(uri);
+                ImageBrush image = new ImageBrush(img);
+                // brd.Background = new SolidColorBrush((Color)System.Windows.Media.ColorConverter.ConvertFromString("#FF5733"));
+                brd.Background = image;              
+                MoveBackward = true;
+            }
+            else
+            {   selectedImageControl.stopsniploop();
+                var button = sender as System.Windows.Controls.Button;
+                Border brd = (Border)button.Template.FindName("_Borderprev", button);
+                // brd.BorderThickness = new Thickness(2);
+                // This answer is useful1
+                var uri = new Uri(@"F:\DicomViewer Development Historybackup\DicomViewer28072022\ImageViewer-master\ImageViewer\ImageViewer\Icons\skip-previous.png", UriKind.Relative);
+                //qestion15.Source = new BitmapImage(uri);
+                BitmapImage img = new BitmapImage(uri);
+                ImageBrush image = new ImageBrush(img);
+                // brd.Background = new SolidColorBrush((Color)System.Windows.Media.ColorConverte
+               // r.ConvertFromString("#FF5733"));
+                brd.Background = image;
+                MoveBackward = false;
+            }           
+        }
+        private void PauseButton_Click(object sender, RoutedEventArgs e)
+        {
+            selectedImageControl.stopsniploop();
+        }
+        private void CiniLoopFraneRate_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (selectedImageControl != null)
+            {
+                selectedImageControl.frameTime = Convert.ToInt32(ciniFrameRateSlider.Value);
+                selectedImageControl.SetInterval();
+            }
+        }
+        private void ChkLoop_Checked(object sender, RoutedEventArgs e)
+        {
+            if (ChkLoop.IsEnabled && selectedImageControl!=null)
+            {
+                selectedImageControl.EnableLooping = true;
+            }           
+        }
+        private void ChkLoop_Unchecked(object sender, RoutedEventArgs e)
+        {                  
+                selectedImageControl.EnableLooping = false;          
+        }
+
+        private void Scout(object sender, RoutedEventArgs e)
+        {
+            if(selectedImageControl.isLocalizerInstance())
+            {
+                    try
+                    {                  
+                            String scoutPos = ApplicationContext.imgView.jTabbedPane1.getSelectedComponent()).getComponent(j)).imgpanel.getImagePosition();
+                            String scoutOrientation = ((LayeredCanvas)((JPanel)ApplicationContext.imgView.jTabbedPane1.getSelectedComponent()).getComponent(j)).imgpanel.getImageOrientation();
+                            String scoutPixelSpacing = ((LayeredCanvas)((JPanel)ApplicationContext.imgView.jTabbedPane1.getSelectedComponent()).getComponent(j)).imgpanel.getPixelSpacing();
+                            int scoutRow = ((LayeredCanvas)((JPanel)ApplicationContext.imgView.jTabbedPane1.getSelectedComponent()).getComponent(j)).imgpanel.getRow();
+                            int scoutColumn = ((LayeredCanvas)((JPanel)ApplicationContext.imgView.jTabbedPane1.getSelectedComponent()).getComponent(j)).imgpanel.getColumn();
+                            String imgPos = ApplicationContext.imgPanel.getImagePosition();
+                            String imgOrientation = ApplicationContext.imgPanel.getImageOrientation();
+                            String imgPixelSpacing = ApplicationContext.imgPanel.getPixelSpacing();
+                            int imgRow = ApplicationContext.imgPanel.getRow();
+                            int imgColumn = ApplicationContext.imgPanel.getColumn();
+                            locator.projectSlice(scoutPos, scoutOrientation, scoutPixelSpacing, scoutRow, scoutColumn, imgPos, imgOrientation, imgPixelSpacing, imgRow, imgColumn);
+                            ((LayeredCanvas)((JPanel)ApplicationContext.imgView.jTabbedPane1.getSelectedComponent()).getComponent(j)).imgpanel.setScoutCoordinates((int)locator.getBoxUlx(), (int)locator.getBoxUly(), (int)locator.getBoxLlx(), (int)locator.getBoxLly(), (int)locator.getBoxUrx(), (int)locator.getBoxUry(), (int)locator.getBoxLrx(), (int)locator.getBoxLry());
+                            retVal = true;
+                        
+                    }
+                    catch (Exception e)
+                    {
+                        e.printStackTrace();
+                    }
+                
+            }
         }
     }
 }
