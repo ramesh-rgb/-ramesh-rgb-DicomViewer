@@ -1363,7 +1363,9 @@ namespace ImageViewer.Screens
                             DicomInstanceImage.Source = BitmapToImageSource(bmp);
                             //IPixelData pixelData = PixelDataFactory.Create(dImage.PixelData, 0);
                             //DicomRange<double> dicomRange = pixelData.GetMinMax();
-                            // this.lbl_min.Content = "Min:" + dicomRange.Minimum.ToString();
+                            // this.lbl_min.Content = "Min:" +
+                            //
+                            // dicomRange.Minimum.ToString();
                             // this.lbl_max.Content = "Max:" + dicomRange.Maximum.ToString();
                             imagecount = j;
                             this.lbl_Instance.Content = "Images:" + imagecount++.ToString();
