@@ -22,7 +22,6 @@ namespace FellowOakDicom
             {"00020012", "UIImplementation Class UID"},
             {"00020013", "SHImplementation Version Name"},
             {"00020016", "AESource Application Entity Title"}, 
-		
             {"00080005", "CSSpecific Character Set"},
             {"00080008", "CSImage Type"},
             {"00080010", "CSRecognition Code"},

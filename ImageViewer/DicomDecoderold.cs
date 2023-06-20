@@ -25,11 +25,11 @@ namespace ImageViewer
         public string unit;
         public double windowCentre, windowWidth;
         public bool signedImage;
-     //   public TypeOfDicomFile typeofDicomFile;
+     // public TypeOfDicomFile typeofDicomFile;
         public List<string> dicomInfo;
         public bool dicmFound; // "DICM" found at offset 128
         public DicomImage dicomimage;
-   //   DicomDictionary dic;
+     // DicomDictionary dic;
         BinaryReader file;
         String dicomFileName;
         String photoInterpretation;
@@ -96,7 +96,7 @@ namespace ImageViewer
             littleEndian = true;
             rescaleIntercept = 0.0; // Default value
             rescaleSlope = 1.0; // Default value
-            //  typeofDicomFile = TypeOfDicomFile.NotDicom;
+            //typeofDicomFile = TypeOfDicomFile.NotDicom;
             patientname = null;
             modality = null;
             patientid = null;
@@ -128,6 +128,7 @@ namespace ImageViewer
                 catch(Exception ex)
                 {
                     Console.WriteLine(ex.Message.ToString());
+
                 }
                 finally
                 {                   
@@ -257,7 +258,6 @@ namespace ImageViewer
                     pixels12.Clear();
                 if (pixels12Int != null)
                     pixels12Int.Clear();
-
                 pixels12 = new List<ushort>();
                 pixels12Int = new List<int>();
                 int numPixels = width * height;

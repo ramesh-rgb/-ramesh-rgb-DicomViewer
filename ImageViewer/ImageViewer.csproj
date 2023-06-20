@@ -17,7 +17,8 @@
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
     <TargetFrameworkProfile />
-    <PublishUrl>publish\</PublishUrl>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <PublishUrl>C:\Users\raster\Desktop\OTImageViewer\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
     <UpdateEnabled>false</UpdateEnabled>
@@ -27,14 +28,14 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationRevision>2</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
+    <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x64</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -43,6 +44,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -53,9 +55,47 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ManifestCertificateThumbprint>F08F1710A6778A1A2EADE9F6B1E0630552932E66</ManifestCertificateThumbprint>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ManifestKeyFile>ImageViewer_TemporaryKey.pfx</ManifestKeyFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <GenerateManifests>true</GenerateManifests>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignManifests>true</SignManifests>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Dicom.Core, Version=4.0.8.0, Culture=neutral, PublicKeyToken=3a13f649e28eb09a, processorArchitecture=MSIL">
       <HintPath>..\packages\fo-dicom.Desktop.4.0.8\lib\net45\Dicom.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Kitware.mummy.Runtime, Version=1.0.2.599, Culture=neutral, PublicKeyToken=995c7fb9db2c1b44, processorArchitecture=AMD64">
+      <HintPath>..\packages\Activiz.NET.x64.5.8.0\lib\net20\Kitware.mummy.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="Kitware.VTK, Version=5.8.0.607, Culture=neutral, PublicKeyToken=995c7fb9db2c1b44, processorArchitecture=AMD64">
+      <HintPath>..\packages\Activiz.NET.x64.5.8.0\lib\net20\Kitware.VTK.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -70,31 +110,48 @@
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
+    <Reference Include="UIAutomationProvider" />
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Annotation.cs" />
+    <Compile Include="ApplicationContext.cs" />
+    <Compile Include="ConvertUtil.cs" />
     <Compile Include="DicomDec.cs" />
     <Compile Include="DicomDecoder.cs" />
     <Compile Include="DicomDictionary.cs" />
     <Compile Include="DicomDirectoryHelper.cs" />
+    <Compile Include="Interface1.cs" />
+    <Compile Include="IPersonManage.cs" />
+    <Compile Include="IRecursive.cs" />
+    <Compile Include="ISeries.cs" />
+    <Compile Include="LocalizerDelegate.cs" />
     <Compile Include="LogWriter.cs" />
+    <Compile Include="Person.cs" />
     <Compile Include="ScoutLineInfoModel.cs" />
+    <Compile Include="Screens\3DView.xaml.cs">
+      <DependentUpon>3DView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Screens\DicomTagg.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Screens\DicomTagg.Designer.cs" />
+    <Compile Include="Screens\MPR.cs" />
     <Compile Include="Screens\SeriesImagePanel.xaml.cs">
       <DependentUpon>SeriesImagePanel.xaml</DependentUpon>
     </Compile>
     <Compile Include="RecurseFileStructure.cs" />
     <Compile Include="Screens\Seriessegregation.cs" />
+    <Compile Include="Screens\Study.cs" />
     <Compile Include="Series.cs" />
+    <Compile Include="SliceLocator.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -109,6 +166,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Screens\3DView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Screens\SeriesImagePanel.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -133,6 +194,7 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="Screens\DicomTagg.resx" />
+    <None Include="ImageViewer_TemporaryKey.pfx" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -288,6 +350,15 @@
     <Resource Include="Icons\pause-circle.png" />
     <Resource Include="Icons\skip-next.png" />
     <Resource Include="Icons\skip-previous.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="ImageClass\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\scoutline.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\scoutlineimg.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\fo-dicom.Desktop.4.0.8\build\net45\fo-dicom.Desktop.targets" Condition="Exists('..\packages\fo-dicom.Desktop.4.0.8\build\net45\fo-dicom.Desktop.targets')" />

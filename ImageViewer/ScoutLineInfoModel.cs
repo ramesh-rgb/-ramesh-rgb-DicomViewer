@@ -8,14 +8,12 @@ namespace ImageViewer
 {
     public class ScoutLineInfoModel
     {
-
         private String scoutPosition;
         private String scoutOrientation;
         private String scoutPixelSpacing;
         private String scoutRow;
         private String scoutColumn;
         private String scoutFrameofReferenceUID;
-
         private String imagePosition;
         private String imageOrientation;
         private String imagePixelSpacing;
@@ -27,74 +25,60 @@ namespace ImageViewer
         public ScoutLineInfoModel()
         {
         }
-
         public String getImageFrameofReferenceUID()
         {
             return imageFrameofReferenceUID;
         }
-
         public void setImageFrameofReferenceUID(String imageFrameofReferenceUID)
         {
             this.imageFrameofReferenceUID = imageFrameofReferenceUID;
         }
-
         public String getImageOrientation()
         {
             return imageOrientation;
         }
-
         public void setImageOrientation(String imageOrientation)
         {
             this.imageOrientation = imageOrientation;
         }
-
         public String getImagePixelSpacing()
         {
             return imagePixelSpacing;
         }
-
         public void setImagePixelSpacing(String imagePixelSpacing)
         {
             this.imagePixelSpacing = imagePixelSpacing;
         }
-
         public String getImagePosition()
         {
             return imagePosition;
         }
-
         public void setImagePosition(String imagePosition)
         {
             this.imagePosition = imagePosition;
         }
-
         public String getImageReferenceSOPInstanceUID()
         {
             return imageReferenceSOPInstanceUID;
         }
-
         public void setImageReferenceSOPInstanceUID(String imageReferenceSOPInstanceUID)
         {
             this.imageReferenceSOPInstanceUID = imageReferenceSOPInstanceUID;
         }
-
         public String getScoutColumn()
         {
             return scoutColumn;
         }
-
         public void setScoutColumn(String scoutColumn)
         {
             this.scoutColumn = scoutColumn;
         }
-
         public String getScoutFrameofReferenceUID()
         {
             return scoutFrameofReferenceUID;
         }
-
         public void setScoutFrameofReferenceUID(String scoutFrameofReferenceUID)
-        {
+        {           
             this.scoutFrameofReferenceUID = scoutFrameofReferenceUID;
         }
 

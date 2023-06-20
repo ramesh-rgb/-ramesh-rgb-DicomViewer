@@ -16,7 +16,6 @@ namespace FellowOakDicom
         DicomOldTypeFile,
         DicomUnknownTransferSyntax
     };
-
     class DicomDecoder
     {
         const uint PIXEL_REPRESENTATION = 0x00280103;
@@ -41,11 +40,9 @@ namespace FellowOakDicom
         const uint BLUE_PALETTE = 0x00281203;
         const uint ICON_IMAGE_SEQUENCE = 0x00880200;
         const uint PIXEL_DATA = 0x7FE00010;
-
         const string ITEM = "FFFEE000";
         const string ITEM_DELIMITATION = "FFFEE00D";
         const string SEQUENCE_DELIMITATION = "FFFEE0DD";
-
         const int
             AE = 0x4145,
             AS = 0x4153,
@@ -807,7 +804,6 @@ namespace FellowOakDicom
                     else
                         pixels16.Add((ushort)(pixel));
                 }
-
                 pixels16Int.Clear();
             }
 

@@ -23,7 +23,7 @@ namespace ImageViewer
             public void ShowDicomDirectoryMetaInformation(DicomDirectory dicomDirectory)
             {
                 _log($"Dicom Directory Information:");
-                var fileMetaInfo = dicomDirectory.FileMetaInfo;
+                 var fileMetaInfo = dicomDirectory.FileMetaInfo;
                 _log($"Media Storage SOP Class UID: '{fileMetaInfo.MediaStorageSOPClassUID}'");
                 _log($"Media Storage SOP Instance UID: '{fileMetaInfo.MediaStorageSOPInstanceUID}'");
                 _log($"Transfer Syntax: '{fileMetaInfo.TransferSyntax}'");
@@ -68,7 +68,7 @@ namespace ImageViewer
                 _log($"\t\t\t-> Referenced SOP Instance UID In File '{sopInstanceUidInFile}'");
                 var transferSyntaxUidInFile = dataset.Get<string>(DicomTag.ReferencedTransferSyntaxUIDInFile,0);
                 _log($"\t\t\t-> Referenced Transfer Syntax UID In File '{transferSyntaxUidInFile}'");
-            }
+            }                                                                                                       
 
             private void ShowSeriesLevelInfo(DicomDataset dataset)
             {
@@ -94,22 +94,19 @@ namespace ImageViewer
                 _log($"-> Patient Name: '{dataset.Get<string>(DicomTag.PatientName)}'");
                 _log($"-> Patient ID: '{dataset.Get<string>(DicomTag.PatientID)}'");
                  Patient patient =new Patient();
-            patient.patientName = dataset.Get<string>(DicomTag.PatientName);
-            patient.patientID = dataset.Get<string>(DicomTag.PatientID);
-            return patient;
+                 patient.patientName = dataset.Get<string>(DicomTag.PatientName);
+                 patient.patientID = dataset.Get<string>(DicomTag.PatientID);
+                 return patient;
             }
 
-        public string GetFilePath(DicomDataset imageRecord,string fileName)
-        {
-            var values1 = imageRecord.Get<string[]>(DicomTag.ReferencedFileID);
-            var filepath = System.IO.Path.Combine(values1[0], values1[1]);
-            DirectoryInfo parentDir = Directory.GetParent(fileName);
-            string filepath2 = System.IO.Path.Combine(parentDir.FullName, filepath);
-            return filepath2;
-        }
-
-    
-
+            public string GetFilePath(DicomDataset imageRecord,string fileName)
+            {
+                var values1 = imageRecord.Get<string[]>(DicomTag.ReferencedFileID);
+                var filepath = System.IO.Path.Combine(values1[0], values1[1]);
+                DirectoryInfo parentDir = Directory.GetParent(fileName);
+                string filepath2 = System.IO.Path.Combine(parentDir.FullName, filepath);
+                return filepath2;
+            }
     }
 
 

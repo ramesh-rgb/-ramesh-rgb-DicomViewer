@@ -13,12 +13,15 @@ namespace ImageViewer
     /// </summary>
     public partial class App : Application
     {  
+
         private void Application_StartUp(object sender, StartupEventArgs e)
         {
 
             if(e.Args.Length>0)
             {
+                
                 MainWindow main = new MainWindow(e.Args[0]);
+                ApplicationContext.mainWindow=main;
                 main.Show();
             }
             else

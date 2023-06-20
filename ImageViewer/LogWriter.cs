@@ -24,12 +24,15 @@ namespace ImageViewer
                 {
                     Log(logMessage, w);
                 }
-                //Console.WriteLine(ex.ToString());
+                //Console.WriteLine(ex.
+                //
+                //
+                //ToString());
             }
             catch (Exception ex)
             {
-               Console.WriteLine(ex.ToString());
-                Console.WriteLine("___________pbr_________________");
+                Console.WriteLine(ex.ToString());
+             
             }
         }
 
@@ -51,7 +54,7 @@ namespace ImageViewer
         }
     }
 }
-   public class LogWriter
+public class LogWriter
 {
   
 }
