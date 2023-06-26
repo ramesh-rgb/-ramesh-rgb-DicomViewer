@@ -9,8 +9,7 @@ namespace ImageViewer
 {
     public class LocalizerDelegate
     {
-        private SliceLocator locator = new SliceLocator();
-      
+        private SliceLocator locator = new SliceLocator();    
         public LocalizerDelegate()
         {
             

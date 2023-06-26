@@ -13,6 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Forms;
 using Kitware.VTK;
+using System.Drawing;
 
 namespace ImageViewer.Screens
 {
@@ -21,33 +22,58 @@ namespace ImageViewer.Screens
     /// </summary>
     public partial class _3DView : Window
     {
-        public RenderWindowControl renderWindowControl = new RenderWindowControl();
+     //   public RenderWindowControl renderWindowControl = new RenderWindowControl();
         vtkRenderWindow renderWindow3D;
-        vtkRenderer renderer3D;
-        vtkDICOMImageReader reader3D;
+      //  vtkRenderer renderer3D;
+     //   vtkDICOMImageReader reader3D;
         System.Windows.Forms.Panel panel1 = new System.Windows.Forms.Panel();
         vtkImageViewer2 _ImageViewer;
         vtkTextMapper _SliceStatusMapper;
         int _Slice;
         int _MinSlice;
         int _MaxSlice;
+        //3Dview
+        public RenderWindowControl renderWindowControl = new RenderWindowControl();
+        vtkRenderWindow renWin;
+        vtkRenderer renderer3D;
+        vtkDICOMImageReader reader3D;
+        double[] xmins = { 0, .51, 0, .51 };
+        double[] xmaxs = { 0.49, 1, 0.49, 1 };
+        double[] ymins = { 0, 0, .51, .51 };
+        double[] ymaxs = { 0.49, 0.49, 1, 1 };
+        double[,] CameraViewUp = new double[,] { { 0, 0, -1 }, { 0, 0, 1 }, { 0, 1, 0 }, };
+
+        double[] CameraFocalPoint = new double[] { 0, 0, 0 };
+        double[] CameraPoint = new double[] { 0, 1, 0 };
+
+        vtkRenderWindowInteractor iren = vtkRenderWindowInteractor.New();
+        List<vtkRenderer> rens = new List<vtkRenderer>();
+        List<vtkImagePlaneWidget> planeWidget = new List<vtkImagePlaneWidget>();
+        List<vtkResliceCursorWidget> resliceCursorWidget = new List<vtkResliceCursorWidget>();
+        List<vtkResliceCursorLineRepresentation> resliceCursorRep = new List<vtkResliceCursorLineRepresentation>();
+        double[] scalarRange = null;
+        vtkImageData vtkimagedata;
+
 
         public _3DView()
         {
             InitializeComponent();
-            //renderWindowControl.Parent = panel1;
-            //renderWindowControl.AddTestActors = true;
-            //renderWindowControl.Load += renderWindowControl1_Load;
-            //host1.Child=panel1 ;
-            //panel1.MouseWheel += Panel1_MouseWheel;
+
+
+            renderWindowControl.Parent = panel1;
+            renderWindowControl.AddTestActors = true;
+            renderWindowControl.Load += renderWindowControl1_Load;
+            host1.Child=panel1 ;
+           // panel1.MouseWheel += Panel1_MouseWheel;
          
         }
         private void renderWindowControl1_Load(object sender, EventArgs e)
         {          
                 try
                 {
-              //  ReadDICOMSeriess(@"D:\DicomImages\images\JAYAPRIYA 26F--2.16.356.330.169832745262664717560289635220234881954\00004_1.3.12.2.1107.5.1.4.64225.30000019082223000443300001088");
-                ReadDICOMSeries(@"D:\DicomImages\images\JAYAPRIYA 26F--2.16.356.330.169832745262664717560289635220234881954\00004_1.3.12.2.1107.5.1.4.64225.30000019082223000443300001088");
+                // ReadDICOMSeriess(@"D:\DicomImages\images\JAYAPRIYA 26F--2.16.356.330.169832745262664717560289635220234881954\00004_1.3.12.2.1107.5.1.4.64225.30000019082223000443300001088");
+                // ReadDICOMSeries(@"D:\DicomImages\images\JAYAPRIYA 26F--2.16.356.330.169832745262664717560289635220234881954\00004_1.3.12.2.1107.5.1.4.64225.30000019082223000443300001088");
+                Render3(@"D:\DicomImages\images\JAYAPRIYA 26F--2.16.356.330.169832745262664717560289635220234881954\00004_1.3.12.2.1107.5.1.4.64225.30000019082223000443300001088");
                 }
                 catch (Exception ex)
                 {
@@ -59,14 +85,12 @@ namespace ImageViewer.Screens
         {
 
         }
-
-
         private void ReadDICOMSeries(string folder)
         {
             // Path to vtk data must be set as an environment variable
             // VTK_DATA_ROOT = "C:\VTK\vtkdata-5.8.0"
-            vtkTesting test = vtkTesting.New();
-            string root = test.GetDataRoot();
+            //vtkTesting test = vtkTesting.New();
+           // string root = test.GetDataRoot();
             // Read all the DICOM files in the specified directory.
             // Caution: folder "DicomTestImages" don't exists by default in the standard vtk data folder
             // sample data are available at http://www.vtk.org/Wiki/images/1/12/VTK_Examples_StandardFormats_Input_DicomTestImages.zip
@@ -157,13 +181,10 @@ namespace ImageViewer.Screens
                 _ImageViewer.Render();
             }
         }
-
         void interactor_MouseWheelForwardEvt(vtkObject sender, vtkObjectEventArgs e)
         {
             MoveForwardSlice();
         }
-
-
         /// <summary>
         /// event handler for mousewheel backward event
         /// </su
@@ -174,12 +195,10 @@ namespace ImageViewer.Screens
         {
             MoveBackwardSlice();
         }
-
         private void Panel1_MouseWheel(object sender, System.Windows.Forms.MouseEventArgs e)
         {
             Coloring(e.Delta);
         }
-
         public void Render3D(string folder)
         {
             double thresh1 = 150.0;
@@ -240,7 +259,6 @@ namespace ImageViewer.Screens
             Coloring();
         }
             vtkVolume vol;
-
         public void MPR()
         {
             vtkTransform vtkTransform = new vtkTransform();
@@ -357,7 +375,6 @@ namespace ImageViewer.Screens
             renderWindow3D.Render();
             
         }
-
         //private void DrawMode_Normal()
         //{
         //    #region 体属性 vtkVolumeProperty
@@ -496,12 +513,181 @@ namespace ImageViewer.Screens
 
             renderWindow3D.Render();
         }
+        private vtkActor BuildOutlineActor(vtkImageData ImageData)
+        {
 
+            vtkOutlineFilter OutlineFilter = vtkOutlineFilter.New();
+            OutlineFilter.SetInputData(ImageData);
+            vtkPolyDataMapper OutlineMapper = vtkPolyDataMapper.New();
+            OutlineMapper.SetInputConnection(OutlineFilter.GetOutputPort());
+            vtkActor outlineActor = vtkActor.New();
+            outlineActor.SetMapper(OutlineMapper);
+            outlineActor.GetProperty().SetColor(0.5, 0.5, 0.5);
+
+            return outlineActor;
+        }
+        public void Render3(string folder)
+        {
+            reader3D = vtkDICOMImageReader.New();
+            reader3D.SetDirectoryName(folder);
+            reader3D.Update();
+            vtkimagedata = reader3D.GetOutput();
+            scalarRange = vtkimagedata.GetScalarRange();
+            // vtkImageViewer resliceImageViewerXY = new vtkImageViewer();
+            // resliceImageViewerXY.SetInputConnection(reader3D.GetOutput());          
+
+            vtkActor OutlineActor = BuildOutlineActor(vtkimagedata);
+            //renderer3D.AddActor(OutlineActor);
+
+            vtkRenderer renderer30 = vtkRenderer.New();
+
+            rens.Add(renderer30);
+            vtkRenderer renderer31 = vtkRenderer.New();
+            rens.Add(renderer31);
+            vtkRenderer renderer32 = vtkRenderer.New();
+            rens.Add(renderer32);
+            vtkRenderer renderer33 = vtkRenderer.New();
+            rens.Add(renderer33);
+            renWin = vtkRenderWindow.New();
+            //renWin.SetSize(1000,1000);
+            renWin.BordersOn();
+            renWin.SetMultiSamples(0);
+            for (int i = 0; i < 4; i++)
+            {
+                // rens[i] = vtkRenderer.New();
+                renWin.AddRenderer(rens[i]);
+            }
+
+            //# irenStyle = vtk.vtkInteractorStyleImage()
+            //vtkInteractorStyleTrackballCamera irenStyle = vtkInteractorStyleTrackballCamera.New();
+            //iren.SetInteractorStyle(irenStyle);
+
+
+            vtkCellPicker picker = vtkCellPicker.New();
+            picker.SetTolerance(0.005);
+
+            iren.SetRenderWindow(renWin);
+            vtkProperty ipwProp = vtkProperty.New();
+            int[] imageDims = new int[3];
+            imageDims = vtkimagedata.GetDimensions();
+
+            for (int i = 0; i < 3; i++)
+            {
+                vtkImagePlaneWidget vtkImagePlaneWidget = vtkImagePlaneWidget.New();
+                planeWidget.Add(vtkImagePlaneWidget);
+
+                planeWidget[i].SetInteractor(iren);
+                planeWidget[i].SetPicker(picker);
+                planeWidget[i].RestrictPlaneToVolumeOn();
+                double[] color = { 0, 0, 0 };
+                color[i] = 1;
+                planeWidget[i].GetPlaneProperty().SetColor(color[0], color[1], color[2]);
+                planeWidget[i].SetTexturePlaneProperty(ipwProp);
+                planeWidget[i].TextureInterpolateOff();
+                planeWidget[i].SetResliceInterpolateToLinear();
+                planeWidget[i].SetInputData(vtkimagedata);
+                planeWidget[i].SetPlaneOrientation(i);
+                planeWidget[i].SetSliceIndex(imageDims[i] / 2);
+                planeWidget[i].DisplayTextOn();
+                planeWidget[i].SetDefaultRenderer(rens[3]);
+                planeWidget[i].SetWindowLevel(1358, -27, 0);
+                planeWidget[i].On();
+                planeWidget[i].InteractionOn();
+                planeWidget[i].SetEnabled(1);
+
+            }
+
+            planeWidget[1].SetLookupTable(planeWidget[0].GetLookupTable());
+            planeWidget[2].SetLookupTable(planeWidget[0].GetLookupTable());
+            vtkResliceCursorCallback cbk = new vtkResliceCursorCallback();
+            vtkResliceCursor resliceCursor = vtkResliceCursor.New();
+            double[] reslicenterobj = reader3D.GetOutput().GetCenter();
+            resliceCursor.SetCenter(reslicenterobj[0], reslicenterobj[1], reslicenterobj[2]);
+            resliceCursor.SetThickMode(0);
+            resliceCursor.SetThickness(10, 10, 10);
+            resliceCursor.SetImage(vtkimagedata);
+
+            double[,] viewUp = new double[,] { { 0, 0, -1 }, { 0, 0, 1 }, { 0, 1, 0 } };
+
+            //List<vtkImagePlaneWidget> vtkPlaneWidgetlist=new List<vtkImagePlaneWidget>();
+
+            for (int i = 0; i < 3; i++)
+            {
+                vtkResliceCursorWidget vtkResliceCursorWidgetseparate = vtkResliceCursorWidget.New();
+                resliceCursorWidget.Add(vtkResliceCursorWidgetseparate);
+                vtkResliceCursorLineRepresentation vtkResliceCursorLineRepresentation = vtkResliceCursorLineRepresentation.New();
+                resliceCursorRep.Add(vtkResliceCursorLineRepresentation);
+                resliceCursorWidget[i].SetInteractor(iren);
+                resliceCursorWidget[i].SetRepresentation(resliceCursorRep[i]);
+                resliceCursorRep[i].GetResliceCursorActor().GetCursorAlgorithm().SetResliceCursor(resliceCursor);
+                resliceCursorRep[i].GetResliceCursorActor().GetCursorAlgorithm().SetReslicePlaneNormal(i);
+                resliceCursorRep[i].SetManipulationMode(2);
+                double[] minVal = new double[4];
+                minVal = vtkimagedata.GetScalarRange();
+                vtkImageReslice reslice = (vtkImageReslice)resliceCursorRep[i].GetReslice();
+
+                reslice.SetInputConnection(reader3D.GetOutputPort());
+                reslice.SetBackgroundColor(minVal[0], minVal[0], minVal[0], minVal[0]);
+                // reslice.AutoCropOutputOn();
+                reslice.Update();
+
+                resliceCursorWidget[i].SetDefaultRenderer(rens[i]);
+                resliceCursorWidget[i].SetEnabled(1);
+
+
+                rens[i].GetActiveCamera().SetFocalPoint(0, 0, 0);
+                double[] camPos = { 0, 0, 0 };
+                camPos[i] = 1;
+                rens[i].GetActiveCamera().SetPosition(camPos[0], camPos[1], camPos[2]);
+                rens[i].GetActiveCamera().ParallelProjectionOn();
+                rens[i].GetActiveCamera().SetViewUp(CameraViewUp[i, 0], CameraViewUp[i, 1], CameraViewUp[i, 2]);
+                rens[i].ResetCamera();
+
+                cbk.IPW[i] = planeWidget[i];
+                cbk.RCW[i] = resliceCursorWidget[i];
+                resliceCursorWidget[i].AnyEvt += cbk.MyCallback;
+                // resliceCursorWidget[i].AddObserver((uint)vtkResliceCursorWidget.ResetCursorEvent_WrapperEnum.ResliceAxesChangedEvent, cbk, 1.0f);
+                resliceCursorRep[i].SetWindowLevel(minVal[1] - minVal[0], (minVal[0] + minVal[1]) / 2.0, 0);
+                planeWidget[i].SetWindowLevel(minVal[1] - minVal[0], (minVal[0] + minVal[1]) / 2.0, 0);
+                resliceCursorRep[i].SetLookupTable(resliceCursorRep[0].GetLookupTable());
+                planeWidget[i].GetColorMap().SetLookupTable(resliceCursorRep[0].GetLookupTable());
+            }
+
+
+            rens[0].SetBackground(0, 0, 0);
+            rens[1].SetBackground(0, 0, 0);
+            rens[2].SetBackground(0, 0, 0);
+            rens[3].AddActor(OutlineActor);
+            rens[3].SetBackground(0.0, 0.0, 0.0);
+            renWin.SetSize(600, 600);
+            // renWin->SetFullScreen(1);
+
+            rens[0].SetViewport(0, 0, 0.5, 0.5);
+            rens[1].SetViewport(0.5, 0, 1, 0.5);
+            rens[2].SetViewport(0, 0.5, 0.5, 1);
+            rens[3].SetViewport(0.5, 0.5, 1, 1);
+
+            // Set the actors' positions
+
+            renWin.Render();
+
+
+            rens[3].GetActiveCamera().Elevation(110);
+            rens[3].GetActiveCamera().SetViewUp(0, 0, -1);
+            rens[3].GetActiveCamera().Azimuth(45);
+            rens[3].GetActiveCamera().Dolly(1.15);
+            rens[3].ResetCameraClippingRange();
+
+            vtkInteractorStyleImage style = vtkInteractorStyleImage.New();
+            iren.SetInteractorStyle(style);
+            iren.Initialize();
+            iren.Start();
+        }
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            vol.UpdateScalarOpacityforSampleSize(renderer3D, 100);
-            renderer3D.Render();       
-            Coloring(100);
+            //vol.UpdateScalarOpacityforSampleSize(renderer3D, 100);
+            //renderer3D.Render();       
+           // Coloring(100);
         }
     }
 }

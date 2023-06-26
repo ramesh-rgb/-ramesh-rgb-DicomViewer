@@ -13,3 +13,4 @@ namespace ImageViewer
         void HandleFiles(IEnumerable<FileInfo> files);
     }
 }
+ 

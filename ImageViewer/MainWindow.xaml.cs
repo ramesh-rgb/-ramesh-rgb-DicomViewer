@@ -1528,7 +1528,6 @@ namespace ImageViewer
             {
                 var button = sender as System.Windows.Controls.Button;
                 Border brd = (Border)button.Template.FindName("_ScoutLine", button);
-
                 brd.BorderBrush = new SolidColorBrush((Color)System.Windows.Media.ColorConverter.ConvertFromString("#FF5733"));
                 selectedImageControl.Scoutlinetoolenable = true;
                 try
@@ -1573,8 +1572,6 @@ namespace ImageViewer
             _3DView _3DView = new _3DView();
             _3DView.Show();
         }
-
-
 
         private void CreateVolumeView(int theIsoValueInHounsfield)
         {
